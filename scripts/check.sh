@@ -225,7 +225,7 @@ echo
 
 # No basta con que el fichero exista: tiene que aparecer en el catálogo que es
 # lo que el modelo lee para lanzar subagents.
-for a in developer reviewer; do
+for a in developer reviewer janitor; do
   if printf '%s' "$agents_json" | grep -q "\"id\": \"$a\""; then
     ok "$a registrado en el catálogo"
   else
@@ -235,48 +235,28 @@ for a in developer reviewer; do
   fi
 done
 
-# El reviewer vale por ser de solo lectura. Dos cosas se comprican:
-#   1. que `edit` esté denegado, y
-#   2. que el deny general de shell vaya ANTES que la excepción `git *`.
-# Gana la última regla que coincide, así que con el orden invertido el deny se
-# come el allow y el reviewer se queda sin poder ni hacer `git diff`. Es un
-# fallo silencioso: el agente existe, responde, y no puede ver el cambio.
+# Los permisos de los agentes con shell restringida se comprueban con
+# scripts/check-perms.py, no aqui. Parsear ese JSON con grep y sed ha fallado
+# tres veces seguidas, y siempre por lo mismo: el JSON lleva acentos y comillas.
+# El comentario de ese script esta el porque de cada una.
 #
-# `opencode debug agents` devuelve JSON con sangrado, así que se pasan los
-# saltos de línea a espacios y se buscan patrones tolerantes al sangrado.
-# OJO: no usar `tr -d ' '` — borraría el espacio de `"git *"` y el patrón
-# jamais casaría, dando un falso "sin excepción git".
-if printf '%s' "$agents_json" | grep -q '"id": "reviewer"'; then
-  flat="$(printf '%s' "$agents_json" | tr '\n' ' ')"
-
-  if printf '%s' "$flat" | grep -qE '"action": *"edit", *"resource": *"\*", *"effect": *"deny"'; then
-    ok "reviewer: \`edit\` denegado (no puede escribir ficheros)"
-  else
-    bad "reviewer NO tiene \`edit\` denegado: podría modificar el código que revisa"
-    fallar
-  fi
-
-  dpos=$(printf '%s' "$flat" | grep -boE '"action": *"shell", *"resource": *"\*", *"effect": *"deny"' \
-         | head -1 | cut -d: -f1)
-  apos=$(printf '%s' "$flat" | grep -boE '"action": *"shell", *"resource": *"git \*", *"effect": *"allow"' \
-         | head -1 | cut -d: -f1)
-
-  if [ -z "$apos" ]; then
-    bad "reviewer: sin excepción \`git *\`. No podrá producir el diff de la tarea."
-    say "  Añade en agents/reviewer.md, DESPUÉS del deny general de shell:"
-    say "    - action: shell / resource: \"git *\" / effect: allow"
-    fallar
-  elif [ -z "$dpos" ]; then
-    warn_ "reviewer: no hay deny general de shell (revisar que no se pueda ejecutar nada más)"
-  elif [ "$dpos" -lt "$apos" ]; then
-    ok "reviewer: shell denegado salvo \`git *\` (orden correcto)"
-  else
-    bad "reviewer: el deny de shell va DESPUÉS de la excepción \`git *\`"
-    say "  Gana la última regla que coincide, así que el deny se come el allow"
-    say "  y el reviewer no puede ni ejecutar \`git diff\`. El deny va antes."
-    fallar
-  fi
+# El script imprime OK|BAD|WARN|HINT por linea; aqui solo se despacha para que
+# conserven el color y el contador de fallos de este script.
+permisos_out="$(printf '%s' "$agents_json" | python3 "$(dirname "$0")/check-perms.py" 2>&1)"
+permisos_rc=$?
+if [ -n "$permisos_out" ]; then
+  while IFS='|' read -r kind texto; do
+    [ -n "$kind" ] || continue
+    case "$kind" in
+      OK)   ok   "$texto" ;;
+      BAD)  bad  "$texto"; fallar ;;
+      WARN) warn_ "$texto" ;;
+      HINT) say "$texto" ;;
+      *)    say "$texto" ;;
+    esac
+  done <<<"$permisos_out"
 fi
+[ "$permisos_rc" -eq 0 ] || :
 
 if [ -e "$OC_DIR/AGENTS.md" ]; then
   ok "AGENTS.md presente (instrucciones globales)"
