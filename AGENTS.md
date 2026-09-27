@@ -17,6 +17,7 @@ proyectos:
 |---|---|
 | Agente `developer` | Lleva un cambio de principio a fin: test antes que código, `@linked` sincronizado, docs y gate en verde |
 | Agente `reviewer` | Revisa un diff en busca de bugs, tests que faltan y docs desincronizadas. Solo lectura: `edit` denegado y `shell` limitado a `git` |
+| Agente `janitor` | Limpia lo que deja una rama mergeada: worktree, rama local, rama remota y sesiones. Borra, así que primero informa |
 | Skill `ship-change` | El SDD completo (spec → plan → tareas con briefs → review → ledger) para cambios grandes |
 | Comando `/ship` | Arranca el bucle con el estado de git ya en el prompt |
 
@@ -26,6 +27,50 @@ repo es la configuración global de opencode.
 **El `AGENTS.md` de cada proyecto manda sobre ellos** para todo lo específico de
 ese repo: los comandos de test reales, las reglas de negocio, qué no tocar. El
 agente global define el bucle, no los comandos de tu proyecto.
+
+### Los commits: convencionales y atómicos
+
+Está aquí, y no solo en la skill, por una razón concreta: la regla del
+`developer` y la del brief de `ship-change` solo se cargan cuando estás
+ejecutando ese bucle dentro de un proyecto. **Mantener este repo, o cualquier
+otro, también es escribir commits**, y ahí no se cargan. Este fichero es el
+único que se lee en todas las sesiones, así que la base va aquí.
+
+**Convencionales.** `tipo(ámbito): qué hace, en una línea imperativa`.
+
+```
+feat(auth): renueva el token antes de que expire
+fix(db): no traga el error si la migración ya corrió
+docs(readme): explica por qué el puerto es el 4096
+chore(deps): sube superpowers a la última
+```
+
+Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`,
+`chore`, `revert`. El `scope` es el ámbito del proyecto (`auth`, `db`, `ui`…); si
+el proyecto declara los suyos, se usan esos.
+
+**Atómicos.** Un commit, un cambio lógico. Dos reglas que se comprueban:
+
+- Si el mensaje necesita una «y» —«arregla el token y añade el test»—, casi
+  siempre son dos commits.
+- Si puedes decir «este commit se revierte sin tocar el otro», son dos.
+
+Un commit atómico se revierte entero y el repo sigue compilando. Esa es la
+prueba, y es más fiable que la intuición.
+
+**El cuerpo explica el porqué; el asunto dice el qué.** El asunto va en
+imperativo y sin punto. Si el *porqué* no cabe en una línea, va en el cuerpo,
+que es lo que se lee en el `git log` de dentro de seis meses.
+
+**El diff se lee entero antes de commitear**, y el `AGENTS.md` no se toca en un
+commit «de paso»: va en su propio.
+
+Esto no compite con el `AGENTS.md` de un proyecto: si un proyecto declara otra
+cosa, manda el suyo. Lo que no puede hacer es decir menos de lo que dice esto.
+
+Y lo revisa el `reviewer`, que mira dos cosas: que el mensaje diga «optimizado»
+o «arreglado» sin la cifra que lo demuestra, y que el diff mezcle cambios sin
+relación entre sí.
 
 ### Las listas de opencode van por el service, no por el disco
 

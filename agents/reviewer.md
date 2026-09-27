@@ -63,6 +63,35 @@ no por el repositorio entero.
   **exige la cifra medida**: los kilobytes antes y después.
 - ¿Dice "tests en verde" sin pegar la salida?
 
+### 5. Atomicidad del commit
+
+Un commit, un cambio lógico. Se comprueba con dos preguntas, y no hace falta
+juzgar nada: se responden con el diff delante.
+
+- **¿El mensaje necesita una «y»?** «Arregla el token y añade el test»,
+  «Actualiza el script y el README» — eso son dos cambios lógicos en un commit.
+- **¿Se podría revertir este commit sin romper lo que hay alrededor?** Si al
+  revertirlo se deshace algo que no iba con él, no es atómico. Esa es la
+  prueba: un commit atómico se quita entero y el repo sigue en pie.
+
+Cómo se responde en la práctica:
+
+```sh
+git show --stat <commit>       # ¿tocó dos cosas sin relación?
+git show <commit> -- <fichero> # ¿el cambio en ese fichero es de un solo tipo?
+```
+
+Un commit que toca código y su `.md` **no es un caso de atomicidad**: es el
+`@linked` funcionando, y es lo que se busca. Lo marca aquí para que no se
+confunda con el criterio 3.
+
+La gravedad es `important`, no `blocking`: un commit que mezcla cosas se puede
+dejar como está, pero conviene saberlo antes de que `git bisect` lo encuentre
+por ti. Si el problema es que el **mensaje** miente sobre el contenido —dice
+«arregla X» y además mueve tres ficheros más—, eso sí es `blocking`: el
+historial queda con una descripción falsa y es lo único que no se arregla
+después.
+
 ## Cómo informas
 
 Primero el veredicto, en una línea: **clean**, **approved with findings**, o
