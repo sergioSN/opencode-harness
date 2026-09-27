@@ -1,0 +1,94 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Este fichero es la configuración global de opencode y está enlazado desde
+  // el repo _opencode-global. Edítalo aquí, no en ~/.config/opencode/.
+  //
+  // OJO al editar: los plugins y los MCP también se pueden tocar con
+  // `opencode plugin add` / `opencode mcp add`, pero esas órdenes reescriben el
+  // fichero entero desde el JSON parseado y se llevan por delante todos estos
+  // comentarios. Si necesitas añadir algo, decláralo aquí a mano.
+
+  // ---------------------------------------------------------------- plugins
+  //
+  // Clave `plugins` en plural: así es en V2. En V1 era `plugin` en singular, y
+  // el doc de migración dice literalmente "Rename `plugin` to `plugins`".
+  // `opencode debug config` confirma que V2 lee y conserva esta clave.
+  //
+  // ATENCIÓN — superpowers usa la API de plugins de V1:
+  //   · un hook `config` que empuja su carpeta a config.skills.paths
+  //     (en V1 `skills` era un objeto; en V2 es un array plano, así que esa
+  //     escritura ya no registra nada)
+  //   · el hook `experimental.chat.messages.transform`, que inyecta el texto
+  //     de arranque en el primer mensaje
+  // El doc de migración advierte: "V1 plugin implementations do not run in V2".
+  // Se deja la entrada puesta por si tu versión lo carga, pero NO cuentes con
+  // ella: el registro fiable de sus skills es el array `skills` de abajo.
+  //
+  // `superpowers` en npm es otro paquete (0.0.2) que no es este. La única
+  // fuente correcta es la de git.
+  "plugins": [
+    "superpowers@git+https://github.com/obra/superpowers.git"
+  ],
+
+  // ----------------------------------------------------------------- skills
+  //
+  // V2 descubre skills por descubrimiento (rutas conocidas) y por este array.
+  // El array es la vía que sí funciona en V2, y admite `~/`.
+  //
+  // Superpowers trae sus skills (brainstorming, test-driven-development,
+  // systematic-debugging, writing-plans, using-git-worktrees...). Su plugin de
+  // V1 los registraba, pero como ese hook ya no corre, los apuntamos aquí
+  // directamente. La ruta la instala `make superpowers`; no la escribas a mano.
+  //
+  // Este array tiene la precedencia más alta, así que si el plugin de V1
+  // llegara a registrar los mismos IDs, mandan estas rutas y no hay duplicados.
+  "skills": [
+    "~/.local/share/superpowers/node_modules/superpowers/skills"
+  ],
+
+  // -------------------------------------------------------------------- mcp
+  //
+  // En V2 los servidores cuelgan de `mcp.servers` (no directamente de `mcp`),
+  // y se desactivan con `disabled`, no con `enabled`.
+  "mcp": {
+    "servers": {
+      // Context7, servidor REMOTO oficial. No hay nada que instalar: opencode
+      // gestiona el OAuth solo. El binario `context7-mcp` que hay en
+      // ~/.local/bin (npm @upstash/context7-mcp) es la vía antigua y queda
+      // sin usar.
+      //
+      // Con API key de context7.com el rate limit sube bastante más:
+      //   export CONTEXT7_API_KEY=...
+      // y descomenta el bloque "headers".
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "disabled": false
+        //,"headers": { "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}" }
+      },
+
+      // CodeGraph (colbymchenry/codegraph): grafo de conocimiento del código,
+      // 100% local, en SQLite. Sin API keys y sin sacar datos de la máquina.
+      //
+      // NO se ejecuta `codegraph install`, por dos motivos:
+      //
+      //  1. Ese comando escribe en ~/.config/opencode/opencode.jsonc, que aquí
+      //     es un symlink a este repo, y podría sustituir el enlace por un
+      //     fichero normal, dejando la configuración fuera de git sin decir
+      //     nada.
+      //
+      //  2. Su propio snippet sigue en formato V1: cuelga de `mcp` en vez de
+      //     `mcp.servers` y usa `enabled: true` en vez de `disabled`. V2 no lo
+      //     entendería. Se comprueba con: make codegraph-snippet
+      //
+      // Por defecto expone un único tool, `codegraph_explore`. Para más:
+      //   export CODEGRAPH_MCP_TOOLS=explore,node,search,callers
+      "codegraph": {
+        "type": "local",
+        "command": ["codegraph", "serve", "--mcp"],
+        "disabled": false
+      }
+    }
+  }
+}

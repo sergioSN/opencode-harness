@@ -1,0 +1,18 @@
+# Este repo ES ~/.config/opencode/ (por symlink), pero no todo lo que hay
+# ahí fuera debe acabar en git.
+
+# Credenciales. service.json lleva la contraseña del service en claro y
+# auth.json los tokens de los proveedores. Ninguno de los dos se enlaza, pero
+# por si alguien los copia alguna vez.
+/service.json
+/auth.json
+*.backup-*
+*.bak
+
+# El config que sí gestionamos va con comentarios; si alguien lo sobreescribe
+# con el CLI, el symlink se rompe y esto avisa.
+/opencode.jsonc.orig
+node_modules/
+
+# Ficheros de un solo uso que se escriben para investigar algo.
+scripts/tmp-*

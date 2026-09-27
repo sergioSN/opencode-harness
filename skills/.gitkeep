@@ -1,0 +1,27 @@
+# Este directorio está enlazado en ~/.config/opencode/skills/, que es donde
+# OpenCode busca los skills globales.
+#
+# Un skill es un directorio con un `SKILL.md` (en mayúsculas, exacto) y, si
+# hace falta, `scripts/`, `references/` o plantillas al lado. Las rutas que
+# escribió dentro del skill son relativas a la carpeta que contiene el
+# `SKILL.md`, así que la forma de directorio es la recomendada: da a los
+# ficheros de apoyo una base privada.
+#
+#   skills/mi-skill/
+#   ├── SKILL.md
+#   ├── references/
+#   └── scripts/
+#
+# Frontmatter mínimo:
+#
+#   ---
+#   name: mi-skill
+#   description: Cuándo usarlo. Si falta, el modelo no se entera de que existe.
+#   ---
+#
+# El ID del skill sale de la RUTA, no del `name`: `skills/mi-skill/SKILL.md` es
+# el ID `mi-skill`, en minúsculas y kebab-case, tal cual. `name` es solo la
+# etiqueta que se muestra.
+#
+# OJO: los skills de superpowers NO van aquí. Se registran por su propia vía
+# (el array `skills` de opencode.jsonc) para no duplicar IDs. Ver el README.

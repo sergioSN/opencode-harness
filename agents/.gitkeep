@@ -1,0 +1,17 @@
+# Este directorio está enlazado en ~/.config/opencode/agents/, que es donde
+# OpenCode busca los agents globales (v2: `~/.config/opencode/agents/<nombre>.md`).
+#
+# Formato de cada agent: un `.md` con frontmatter. Como mínimo `description`
+# (es lo que lee el modelo para decidir a quién lanza) y `mode`
+# (`primary`, `subagent` o `all`).
+#
+# Ejemplo:
+#
+#   ---
+#   description: Revisa los cambios actuales en busca de regresiones
+#   mode: subagent
+#   ---
+#
+#   Revisa los cambios. Lista los hallazgos ordenados por gravedad.
+#
+# Para ver los que hay ahora mismo: opencode debug agents
