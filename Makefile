@@ -97,7 +97,7 @@ check: ## Estado real de todo, verificado con el propio opencode
 # deja funcionando sin editar un solo Makefile. Es un parche: lo definitivo es
 # cambiar OPENCHAMBER_COMMON en cada proyecto.
 compat: ## Symlink en la ruta vieja, para los Makefiles que aun no han migrado
-	@old=$$(HOME)/projects/_openchamber; \
+	@old=$(HOME)/projects/_openchamber; \
 	if [ -e "$$old" ] && [ ! -L "$$old" ]; then \
 		echo "  $$old existe y no es un symlink."; \
 		echo "  probably es el repo viejo clonado. Muevelo o borralo antes."; \
