@@ -180,7 +180,8 @@ cada proyecto.
 | Artefacto | Qué es |
 |---|---|
 | `agents/developer.md` | El bucle de un cambio de principio a fin. `mode: all`, así que sirve como agente principal y como subagent. |
-| `agents/reviewer.md` | Revisión de un diff en busca de bugs, tests que faltan y docs desincronizadas. **Solo lectura.** |
+| `agents/reviewer.md` | Revisión de un diff en busca de bugs, tests que faltan, docs desincronizadas, commits no atómicos y afirmaciones sin evidencia. **Solo lectura.** |
+| `agents/janitor.md` | Limpia lo que deja una rama mergeada: worktree, rama local, rama remota y las sesiones de opencode. **Borra**, así que primero informa y solo borra lo confirmado. |
 | `skills/ship-change/` | El SDD completo: spec → plan → tareas con briefs → review por tarea → ledger → gate. |
 | `commands/ship.md` | `/ship <feature>` para arrancar, con `git status` y `git log` ya en el prompt. |
 
@@ -216,7 +217,7 @@ había escapado en un `progress.md` anterior:
 6. **Las escalaciones a producto tienen su propia sección** en el ledger, que es
    donde se pierden por defecto.
 
-## Seis trampas, y por qué este repo las esquiva
+## Ocho trampas, y por qué este repo las esquiva
 
 ### 1. `superpowers` es un plugin de v1
 
@@ -288,7 +289,50 @@ aquí**, porque `/health` devuelve el HTML de la SPA. La comprobación real de q
 el servidor de opencode está bien es que su log imprima la contraseña, que es lo
 que hace `scripts/opencode-serve.sh`.
 
-### 5. El PATH no interactivo de WSL
+### 5. El `directory` de una sesión puede venir corrupto
+
+`opencode session list --format json` da el `directory` donde se creó cada
+sesión, que es lo que permite atribuirlas a un worktree. Pero no siempre es una
+ruta POSIX limpia: hay sesiones creadas desde el opencode de **Windows** contra
+una ruta de WSL, guardadas con el prefijo UNC pegado al final.
+
+```
+/home/ubuntu/proyecto/\\wsl.localhost\Ubuntu\home\ubuntu\proyectos\proyecto
+```
+
+Por eso el janitor compara con `realpath` y con igualdad de ruta, y nunca
+buscando si una ruta contiene a la otra como texto: eso casa donde no debe y
+borra sesiones de otro sitio.
+
+Aparte: las sesiones de la instalación de Windows son **otro almacén**, con
+otros ids. Desde WSL no se ven y no hay forma de borrarlas desde aquí.
+
+### 6. No parses el JSON de opencode con `grep`
+
+Y esto no es una opinión, es la tercera vez que lo rompe el mismo fichero.
+
+`opencode debug agents` devuelve JSON con acentos, comillas y arrays. `check.sh`
+lo llevaba con `sed` y `grep`, y falló tres veces seguidas:
+
+1. `tr -d ' '` para aplanar el JSON **borraba el espacio** de `"git *"`. El
+   patrón jamás casaba y el diagnóstico salía como «sin excepción git».
+2. Medir la posición del deny y del allow sobre el JSON entero comparaba **el
+   deny de un agente con el allow del siguiente** en cuanto había más de uno.
+3. `grep -bo` cuenta **bytes** y `cut -c` cuenta **caracteres**. Con acentos, los
+   dos offsets no son comparables y el recorte sale mal.
+
+Las tres son el mismo error de fondo. Los permisos se comprueban ahora en
+`scripts/check-perms.py`, que usa `json.loads` e indexa la lista. La regla
+general: si hay un `json` disponible, no lo parsees con `grep`.
+
+Y un cuarto, del mismo barrio: en bash, **un acento grave sin escapar dentro de
+comillas dobles es sustitución de comandos**. Si un mensaje lleva el nombre de
+una orden entre acentos graves y no los escapas, bash ejecuta esa orden en
+cuanto lee la línea. En este repo todos los mensajes llevan el acento grave
+precedido de barra, y basta uno sin escapar para que salga `edit: command not
+found` en mitad de un diagnóstico.
+
+### 7. El PATH no interactivo de WSL
 
 Una shell no interactiva no trae `~/.local/bin`. Por eso el `Makefile` fija el
 PATH y usa `npm --prefix ~/.local i -g`: el `npm` del PATH viene de otra
@@ -298,7 +342,7 @@ Y lo mismo rompe el `.bat` de OpenChamber, que arranca el server con
 `wsl.exe -e bash -lc` y por tanto sin `~/.bashrc`. Sin `OPENCODE_BINARY` explícito
 muerre con `Unable to locate the opencode CLI on PATH`. No lo quites.
 
-### 6. En los permisos, gana la última regla que coincide
+### 8. En los permisos, gana la última regla que coincide
 
 Este es el fallo silencioso que casi se cuela, y por eso `check.sh` lo comprueba.
 En `agents/reviewer.md` queremos permitir `git` y denegar el resto de `shell`.
