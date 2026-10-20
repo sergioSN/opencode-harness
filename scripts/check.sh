@@ -11,7 +11,6 @@ set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OC_DIR="${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}"
-SP_SKILLS="$HOME/.local/share/superpowers/node_modules/superpowers/skills"
 
 # El PATH no interactivo de WSL no trae ~/.local/bin, y fue
 # exactamente lo que escondió el launcher de openchamber.
@@ -107,48 +106,8 @@ else
   fi
 fi
 
-# ------------------------------------------------------------- 3. plugins
-h "3. Plugins"
-if echo "$config_json" 2>/dev/null | grep -q 'superpowers@git+'; then
-  ok "superpowers declarado en \`plugins\`"
-else
-  bad "superpowers no está en \`plugins\`"
-  fallar
-fi
-plugin_list="$(opencode plugin list 2>&1)"
-say "opencode plugin list dice:"
-printf '%s\n' "$plugin_list" | sed -n '1,8p' | sed 's/^/     /'
-say ""
-if echo "$plugin_list" | grep -q 'superpowers'; then
-  ok "superpowers registrado en el service"
-else
-  warn_ "superpowers no aparece en \`opencode plugin list\`"
-fi
-warn_ "Estar registrado no significa que funcione: su plugin usa hooks de V1"
-say "(config.skills.paths y experimental.chat.messages.transform), y el doc de"
-say "migración dice que los plugins de V1 no corren en V2. Lo que sí funciona"
-say "son los 15 skills, y llegan por el array \`skills\` de la config. Sección 4."
-
-# -------------------------------------------------------------- 4. skills
-h "4. Skills de superpowers (vía array \`skills\` de V2)"
-if [ -d "$SP_SKILLS" ]; then
-  n=$(find "$SP_SKILLS" -name SKILL.md 2>/dev/null | wc -l)
-  if [ "$n" -gt 0 ]; then
-    ok "$n skills instalados en $(basename "$(dirname "$SP_SKILLS")")/superpowers/skills"
-    find "$SP_SKILLS" -name SKILL.md 2>/dev/null | sed "s|$SP_SKILLS/||;s|/SKILL.md||" \
-      | sort | tr '\n' ' ' | fold -s -w 66 | sed 's/^/     /'
-  else
-    bad "el directorio existe pero no hay ningún SKILL.md"
-    fallar
-  fi
-else
-  bad "no está instalado: $SP_SKILLS"
-  say "  Solución: make superpowers"
-  fallar
-fi
-
-# ----------------------------------------------------------------- 5. mcp
-h "5. MCP (mcp.servers)"
+# -------------------------------------------------------------- 3. mcp
+h "3. MCP (mcp.servers)"
 if echo "$config_json" 2>/dev/null | grep -q '"servers"'; then
   ok "bloque \`mcp.servers\` presente (forma V2)"
 else
@@ -187,8 +146,8 @@ else
   ok "ningún MCP en failed"
 fi
 
-# ------------------------------------------------------------ 6. binarios
-h "6. Binarios"
+# ------------------------------------------------------------ 4. binarios
+h "4. Binarios"
 if command -v codegraph >/dev/null 2>&1; then
   ok "codegraph -> $(command -v codegraph)"
 else
@@ -208,8 +167,8 @@ case ":$PATH:" in
   *) warn_ "~/.opencode/bin no está en el PATH" ;;
 esac
 
-# -------------------------------------------------------------- 7. agentes
-h "7. Agents globales"
+# -------------------------------------------------------------- 5. agentes
+h "5. Agents globales"
 agents_json="$(opencode debug agents 2>/dev/null)"
 n_agents=$(printf '%s' "$agents_json" | grep -c '"id":' || true)
 if [ "$n_agents" -gt 0 ]; then
@@ -265,10 +224,10 @@ else
   fallar
 fi
 
-# ------------------------------------------------------------- 8. commands
+# ------------------------------------------------------------- 6. commands
 # `find` sin -L no baja por un symlink a directorio: daría 0 ficheros aunque
 # `commands/ship.md` exista, que es justo el fallo que hay que cazar aquí.
-h "8. Comandos globales"
+h "6. Comandos globales"
 if [ -e "$OC_DIR/commands" ]; then
   n_cmd=$(find -L "$OC_DIR/commands" -name '*.md' 2>/dev/null | wc -l)
   if [ "$n_cmd" -gt 0 ]; then
@@ -298,28 +257,21 @@ else
   fallar
 fi
 
-# ------------------------------------------------------------ 9. skills
-h "9. Skills propias"
-if [ -d "$REPO_DIR/skills" ]; then
-  n_own=$(find "$REPO_DIR/skills" -mindepth 2 -name SKILL.md 2>/dev/null | wc -l)
-  if [ "$n_own" -gt 0 ]; then
-    ok "$n_own skill(s) propia(s) en el repo"
-    find "$REPO_DIR/skills" -mindepth 2 -name SKILL.md 2>/dev/null \
-      | sed "s|$REPO_DIR/skills/||; s|/SKILL.md||" | sort \
-      | tr '\n' ' ' | fold -s -w 66 | sed 's/^/     /'
-    echo
-    while IFS= read -r f; do
-      if head -20 "$f" | grep -q '^description:'; then
-        ok "$(basename "$(dirname "$f")") tiene description (es lo que lee el modelo)"
-      else
-        bad "$(basename "$(dirname "$f")") sin \`description\`: el modelo no sabrá cuándo cargarla"
-        fallar
-      fi
-    done < <(find "$REPO_DIR/skills" -mindepth 2 -name SKILL.md 2>/dev/null)
+# ------------------------------------------------------------ 7. skills locales
+h "7. Skills locales"
+REQUIRED_SKILLS=(ship-change tdd diagnosing-bugs code-review codebase-design verification)
+for skill_id in "${REQUIRED_SKILLS[@]}"; do
+  skill_file="$REPO_DIR/skills/$skill_id/SKILL.md"
+  if [ ! -f "$skill_file" ]; then
+    bad "falta el skill local $skill_id"
+    fallar
+  elif ! head -20 "$skill_file" | grep -q '^description:'; then
+    bad "$skill_id no tiene description en el frontmatter"
+    fallar
   else
-    say "ninguna todavía"
+    ok "$skill_id local y descubrible"
   fi
-fi
+done
 
 # --------------------------------------------------------------- resumen
 h "Resumen"

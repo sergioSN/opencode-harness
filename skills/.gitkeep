@@ -23,5 +23,5 @@
 # el ID `mi-skill`, en minúsculas y kebab-case, tal cual. `name` es solo la
 # etiqueta que se muestra.
 #
-# OJO: los skills de superpowers NO van aquí. Se registran por su propia vía
-# (el array `skills` de opencode.jsonc) para no duplicar IDs. Ver el README.
+# Los skills propios del arnés viven aquí y se descubren desde la ruta global
+# enlazada. Mantén un `description` claro para que OpenCode sepa cuándo cargarlos.

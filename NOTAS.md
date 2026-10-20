@@ -52,8 +52,7 @@ Es la fuente habitual de líos, así que va explícito:
 
 | Target | Qué hace |
 |---|---|
-| `make setup` | `link` + `superpowers` + `codegraph` + `compat` + `check` |
-| `make superpowers` | Instala superpowers y registra sus skills |
+| `make setup` | `link` + `codegraph` + `compat` + `check` |
 | `make context7` | Verifica el MCP remoto de context7 (no hay nada que instalar) |
 | `make context7-cli` | Instala la CLI de context7 para la terminal |
 | `make codegraph` | Instala el CLI de codegraph |
@@ -136,31 +135,18 @@ make upgrade UPGRADE_FLAGS=--allow-major
 > secas: un `npm i -g` mal dirigido deja **dos copias** instaladas y el symlink
 > apuntando a la vieja.
 
-## Ocho trampas
+## Ocho reglas operativas
 
-### 1. `superpowers` es un plugin de v1
+### 1. Las skills del arnés viven en `skills/`
 
-Su plugin usa dos hooks de la API de v1: uno `config` que empuja su carpeta a
-`config.skills.paths`, y `experimental.chat.messages.transform`. Pero en v2
-`skills` es un **array plano**, así que esa escritura ya no registra nada. El
-propio doc de migración avisa: *«V1 plugin implementations do not run in V2»*.
+`make link` enlaza `skills/` con `~/.config/opencode/skills`, una ruta global que
+OpenCode V2 descubre automáticamente. Por eso los skills propios no necesitan
+una ruta externa en el array `skills` de `opencode.jsonc`.
 
-El plugin sigue declarado en `plugins` y `opencode plugin list` lo muestra
-registrado (con su SHA), pero **eso no significa que sus hooks corran**: lo que
-aporta son código de v1, y en v2 no tiene efecto. La vía que funciona es el
-array `skills` de la config:
-
-```jsonc
-"skills": ["~/.local/share/superpowers/node_modules/superpowers/skills"]
-```
-
-Verificado: los 15 skills son visibles para el modelo, y en la lista salen
-`test-driven-development`, `verification-before-completion`, `writing-plans`,
-`brainstorming` y `subagent-driven-development`, que son los que usa el agente
-`developer` y la skill `ship-change`.
-
-Ojo también: el paquete `superpowers` de npm es **otro** (0.0.2), no este. La
-fuente buena es la de git.
+Cada skill que forma parte del contrato del arnés tiene un directorio versionado
+y un `SKILL.md` con `description`; `scripts/check.sh` verifica los IDs requeridos.
+Los skills personales adicionales pueden descubrirse desde `~/.agents/skills`,
+pero no se convierten por eso en dependencias de `make setup`.
 
 ### 2. `codegraph install` no entendería la config ni aguantaría el symlink
 

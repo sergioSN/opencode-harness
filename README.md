@@ -15,7 +15,7 @@ y no hay dos versiones que se desincronicen.
 | `opencode.jsonc` | plugins, skills y servidores MCP |
 | `AGENTS.md` | instrucciones globales |
 | `agents/` | tres agentes: `developer`, `reviewer`, `janitor` |
-| `skills/ship-change/` | el flujo spec → plan → tareas → review → ledger |
+| `skills/` | skills globales propias: flujo SDD, TDD, diagnóstico, diseño, review y verificación |
 | `commands/ship.md` | `/ship <feature>` |
 | `Makefile` | los lanzadores y el resto de targets |
 | `scripts/` | enlazar, comprobar, lanzar y actualizar |
@@ -25,7 +25,7 @@ y no hay dos versiones que se desincronicen.
 ```sh
 git clone https://github.com/sergioSN/opencode-harness.git
 cd opencode-harness
-make setup    # enlaza la config, instala plugins y CLIs, y comprueba
+make setup    # enlaza la config, instala la CLI de codegraph, y comprueba
 make check    # el estado real, preguntando al propio opencode
 ```
 
