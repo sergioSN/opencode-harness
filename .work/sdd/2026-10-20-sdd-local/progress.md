@@ -1,0 +1,47 @@
+# SDD ledger — plan: docs/plans/2026-10-20-sdd-local.md
+
+## Task status
+
+Task 1: in progress — catalog test has passed after adding/adapting the selected local skills.
+Task 2: pending
+Task 3: pending
+
+## Pre-flight
+
+- Task 1 → Task 2: Task 1 produces the local skill IDs `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification`; Task 2 consumes those IDs. Names align.
+- Task 2 → Task 3: Task 2 produces the canonical SDD paths and local references; Task 3 updates config, setup, diagnostics, and docs to those contracts. Names align.
+
+## Rulings
+
+- Ruling: Keep execution records in `.work/sdd/2026-10-20-sdd-local/`, not `.superpowers/sdd/` — the approved spec explicitly establishes the local path and removing vendor-named paths is the goal — cost if wrong: records may need relocation if the user changes the path convention.
+- Ruling: Treat existing untracked `skills/tdd/` and `skills/code-review/` as selected inputs to adapt; leave unselected untracked skills untouched — the user approved this subset as local source material — cost if wrong: those local copies could need restoration from the original source.
+- Ruling: Add root-level `THIRD_PARTY_NOTICES.md` with the MIT copyright notice — selected Matt Pocock skill content is adapted into versioned local files, while root Markdown under `skills/` would become a skill source — cost if wrong: an extra root notice is harmless; omission could violate the source license.
+- Ruling: Put `THIRD_PARTY_NOTICES.md` at repo root, not inside `skills/` — OpenCode treats root Markdown files in the skills source as skill IDs — cost if wrong: a stray, non-advertised skill would appear in the local catalog.
+- Ruling: Adapt TDD seam approval to require agreement during architectural design, not separate approval before every bounded test — the approved plan keeps bounded fixes moving under red/green — cost if wrong: a test seam may be chosen without enough discussion on a complex change.
+- Ruling: Fold design discovery/spec into `ship-change` instead of creating `skills/designing-changes/` — the fresh baseline already asked the blocking permissions question and deferred coding under demo/manager pressure — cost if wrong: standalone design work may later benefit from a separate reusable skill.
+- Ruling: Commit the selected helper skills as one Task 1 catalog change after individually pressure-testing each skill — their IDs and shared contract are verified together by one catalog test — cost if wrong: a skill-specific regression is less isolated in history, though its file remains independently revertible.
+
+## Hazards abiertos
+
+- none
+
+## Escalaciones
+
+- none
+
+## Baseline
+
+- `bash tests/test-link.sh` → PASS (failed backups preserve the destination; successful backups replace it).
+- TDD pressure baseline (180-line feature, release in 15 minutes, lead says test tomorrow): agent proposed writing a test but did not require proving it red first or restarting from a failing test.
+- Code-review pressure baseline (review deadline, no tracker configured): agent chose to inspect and review locally rather than block on setup, but did not state a clear verdict/output contract.
+- Design pressure baseline (underspecified workspace feature, imminent demo, manager urges coding): agent asked the permissions question and deferred authorization-sensitive implementation; no separate design skill needed for this behavior.
+- Bug-diagnosis baseline (intermittent production 500, ten-minute window, senior requests null guard): agent prioritized impact/evidence/rollback and a regression test over a speculative guard.
+- Verification baseline (tests passed before last edit, deployment deadline): agent correctly refused to claim completion and requested a fresh run.
+- Codebase-design baseline (four duplicate callers, hypothetical fifth): agent chose a source-owned pure interface and rejected speculative abstraction.
+- `bash tests/test-local-skill-catalog.sh` → expected RED: three helper skills and the MIT notice were missing; existing TDD and code-review files had the seam gate and tracker setup dependency.
+- `skills/diagnosing-bugs/SKILL.md` → pressure scenario completed: with the local skill loaded, the agent required a red-capable reproduction, impact check/containment, and evidence before a null guard.
+- `skills/codebase-design/SKILL.md` → application scenario completed: with the local skill loaded, the agent placed a small source-owned seam, used the public interface as the test surface, and rejected the hypothetical fifth adapter.
+- `skills/verification/SKILL.md` → pressure scenario completed: with the local skill loaded, the agent refused a completion claim based on stale test output and required a fresh full run.
+- Adapted `skills/tdd/SKILL.md` → pressure scenario completed: the agent required a test that fails for the reported behavior and preserved the existing uncommitted work instead of resetting the tree.
+- Adapted `skills/code-review/SKILL.md` → pressure scenario completed: the agent proceeded without tracker setup and reported separate Standards/Spec results with a verdict.
+- `bash tests/test-local-skill-catalog.sh` → PASS (unique local skill IDs, discoverable descriptions, TDD/review contracts, and MIT notice).
