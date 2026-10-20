@@ -1,4 +1,4 @@
-# SDD ledger — plan: docs/plans/2026-10-20-sdd-local.md
+# SDD ledger — plan: docs/plans/2026-10-20-sdd-local-plan.md
 
 ## Task status
 
@@ -10,7 +10,7 @@ Task 5: complete (commit d3b3caf plus source-precedence follow-up, tests: parser
 Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PASS)
 Task 7: complete (commits 79676bf, 03b7b07; parser suite 6/6, malformed-field mutation → RED)
 Task 8: complete (commits faf2c0f, b80ffce, 80804fc, e421ae1; contract and mutation tests PASS; final review clean)
-Task 9: in progress
+Task 9: in progress (primary-range follow-up after review of commit eb8a9d4)
 
 ## Pre-flight
 
@@ -87,6 +87,8 @@ Task 9: in progress
 - Task 7 final follow-up review on `79676bf..03b7b07` → clean, no findings; reviewer did not run tests.
 - Task 8 reviewers caught false positives in MCP/link assertions and JSON shape validation; fixed through exact link matching and JSONC object validation. Comment/near-match/array mutation fixtures fail, both actual contract tests pass, and final review on `80804fc..e421ae1` → clean.
 - Final pre-close gate: all seven shell tests PASS; parser tests 6/6; Bash/Python syntax checks pass; `make -n setup` and `make check` pass; artifact completeness test finds briefs, reports, and referenced diff snapshots for Tasks 1–8.
+- Task 9 review correction: added primary implementation snapshots for Tasks 7 and 8 and made `test-sdd-artifacts.sh` require each task's primary range. A fixture missing Task 7's primary range fails with the expected diagnostic; the complete artifact test passes.
+- Final aggregate review on `d51c2d0..1eec050`: Spec clean; two minor Standards findings (duplicate Task 7 report link and ambiguous test count) fixed in this closeout. Reviewer did not run tests; full gate was run separately.
 - Task 6 commit `ffcdd84` documents the optional companion catalogs; the feature-range review found an important source-precedence gap, fixed in the follow-up parser commit.
 - Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
 - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.

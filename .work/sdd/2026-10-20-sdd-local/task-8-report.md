@@ -13,4 +13,4 @@ Mutation fixtures removing the deferred-finding rule, staging restriction, `cont
 
 **Review record:** Reviewers found Important false-positive gaps in substring/awk checks and JSON shape validation. Fixed by parsing JSONC after removing comments/trailing commas, requiring object-valued `mcp` and `mcp.servers`, and using an exact `LINKED` line match. The final reviewer verdict is **clean**, no findings; reviewers did not run tests.
 
-**Review diffs:** `review-faf2c0f..b80ffce.diff`, `review-b80ffce..80804fc.diff`, and `review-80804fc..e421ae1.diff`.
+**Review diffs:** `review-03b7b07..faf2c0f.diff` covers the primary contract tests; `review-faf2c0f..b80ffce.diff`, `review-b80ffce..80804fc.diff`, and `review-80804fc..e421ae1.diff` capture follow-up corrections.

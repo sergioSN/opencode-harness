@@ -203,12 +203,12 @@
 - [x] **Step 3: Backfill briefs and reports** from the approved plan and actual commit history; record only observed verification results and review verdicts, never invent task-level reviews.
 - [x] **Step 4: Generate exact diff snapshots** for each task's commit range and the Task 5 review-fix commit; record the commit mapping in each report.
 - [x] **Step 5: Run `bash tests/test-sdd-artifacts.sh` and inspect each report/diff pairing.** Expected: PASS; every completed task report points to an existing diff snapshot.
-- [ ] **Step 6: Commit** as `docs(sdd): completa artefactos por tarea`.
+- [x] **Step 6: Commit** as `docs(sdd): completa artefactos por tarea`.
 
 ## Final gate
 
-- [x] Run all seven shell contract tests, `python3 tests/test_check_skills.py`, and `tests/test-link.sh`.
+- [x] Run the six shell contract tests, `tests/test-link.sh`, and `python3 tests/test_check_skills.py`.
 - [x] Run Bash/Python syntax checks and scoped whitespace checks for changed source/docs; exclude unrelated dirty agent files and immutable exact-review `.diff` snapshots (which preserve upstream whitespace) from whitespace lint.
 - [x] Read the full SDD range diff; confirm unrelated untracked skills and the local Superpowers installation remain untouched.
 - [x] Run `make check` and verify the local skills in OpenCode V2.
-- [ ] Review the complete SDD range `d51c2d0..HEAD` against `docs/specs/2026-10-20-sdd-local-design.md`; confirm all review findings are resolved before considering a push or merge.
+- [x] Review the complete SDD range `d51c2d0..1eec050` against `docs/specs/2026-10-20-sdd-local-design.md`; all Spec findings were resolved. Standards review found two minor documentation issues, fixed in this closeout.

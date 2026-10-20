@@ -6,8 +6,6 @@
 
 **Review context:** First verdict: **approved with findings**; Important coverage gap for empty/non-string fields. After adding all requested variants, follow-up verdict: **clean**, no findings. Reviewers did not run tests. No external dependency or user skill directory was changed.
 
-**Review diff:** `review-79676bf..03b7b07.diff` covers the coverage follow-up.
-
-**Review diff:** `review-79676bf..03b7b07.diff` covers the regression-coverage follow-up.
+**Review diffs:** `review-c1cbfb4..79676bf.diff` covers the parser implementation; `review-79676bf..03b7b07.diff` covers the coverage follow-up.
 
 **Deferred findings:** none.

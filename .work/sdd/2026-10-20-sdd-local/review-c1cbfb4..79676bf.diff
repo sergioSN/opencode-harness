@@ -1,0 +1,178 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/progress.md b/.work/sdd/2026-10-20-sdd-local/progress.md
+index cc3bcbf..36aa1cf 100644
+--- a/.work/sdd/2026-10-20-sdd-local/progress.md
++++ b/.work/sdd/2026-10-20-sdd-local/progress.md
+@@ -8,6 +8,7 @@ Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit
+ Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
+ Task 5: complete (commit d3b3caf plus source-precedence follow-up, tests: parser 5/5 + dependency check + `make check` → PASS)
+ Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PASS)
++Task 7: in progress
+ 
+ ## Pre-flight
+ 
+@@ -79,6 +80,7 @@ Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PA
+ - Reviewer recheck on `d51c2d0..ffcdd84` found that the API parser checked IDs but not source paths; a same-ID skill from another catalog could shadow the local copy.
+ - TDD for the review fix: the shadow-source regression test failed because the parser did not accept an expected local directory; after path validation, parser tests pass 5/5.
+ - `tests/test_check_skills.py` after the review fix → 5/5 PASS; `make check` resolves each required API path to its corresponding repo-local `SKILL.md` through the global symlink.
++- Task 7 malformed-entry test against the committed pre-fix parser → RED (`ValueError not raised`); updated parser → 6/6 PASS.
+ - Task 6 commit `ffcdd84` documents the optional companion catalogs; the feature-range review found an important source-precedence gap, fixed in the follow-up parser commit.
+ - Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
+ - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
+diff --git a/.work/sdd/2026-10-20-sdd-local/task-7-brief.md b/.work/sdd/2026-10-20-sdd-local/task-7-brief.md
+new file mode 100644
+index 0000000..28e3723
+--- /dev/null
++++ b/.work/sdd/2026-10-20-sdd-local/task-7-brief.md
+@@ -0,0 +1,11 @@
++### Task 7: Reject malformed runtime skill entries
++
++**Files:**
++- Modify: `scripts/check_skills.py`
++- Test: `tests/test_check_skills.py`
++
++**Contract:** Reject any catalog `data` entry without a nonempty string `id` and `path`, even when all required valid IDs are present. Keep the existing missing-ID, duplicate-ID, and local-source checks.
++
++**Does not authorize:** changing required skill IDs, touching optional skills, or changing OpenCode configuration.
++
++**Verification:** Run the malformed-entry test against the committed pre-fix parser, then run the parser suite against the corrected implementation.
+diff --git a/.work/sdd/2026-10-20-sdd-local/task-7-report.md b/.work/sdd/2026-10-20-sdd-local/task-7-report.md
+new file mode 100644
+index 0000000..cb8d63b
+--- /dev/null
++++ b/.work/sdd/2026-10-20-sdd-local/task-7-report.md
+@@ -0,0 +1,9 @@
++# Task 7 report — reject malformed skill catalog entries
++
++**Result:** `scripts/check_skills.py` now rejects `/api/skill` entries without nonempty string `id` and `path` before checking required IDs.
++
++**TDD evidence:** The malformed-entry test against the committed pre-fix parser failed twice with `ValueError not raised`, once for the missing ID and once for the missing path. Against the fix, `python3 tests/test_check_skills.py` passed 6/6.
++
++**Review context:** This closes the malformed-entry input left open while fixing the reviewer’s source-precedence finding. No external dependency or user skill directory was changed.
++
++**Deferred findings:** none.
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+index b62cc5e..2425035 100644
+--- a/docs/plans/2026-10-20-sdd-local.md
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -154,9 +154,60 @@
+ - [x] **Step 4: Run the docs contract test and `git diff --check`.** Expected: PASS and no whitespace issues.
+ - [x] **Step 5: Commit** as `docs(readme): menciona skills opcionales`.
+ 
++### Task 7: Reject malformed runtime skill entries
++
++**Files:**
++- Modify: `scripts/check_skills.py`
++- Test: `tests/test_check_skills.py`
++
++**Interfaces:**
++- Consumes: OpenCode's skill API payload.
++- Produces: a strict parser that rejects any catalog entry missing a nonempty string `id` or `path`, even when all required IDs otherwise appear.
++
++- [x] **Step 1: Write malformed-entry tests** where the payload contains every required valid skill plus an extra entry missing `id`, and another missing `path`.
++- [x] **Step 2: Run `python3 tests/test_check_skills.py` against the current committed parser.** Expected: FAIL because the malformed entry is silently ignored.
++- [x] **Step 3: Reject malformed entries** in `missing_required_skills` before comparing IDs and source paths.
++- [x] **Step 4: Run `python3 tests/test_check_skills.py`.** Expected: all parser cases pass.
++- [ ] **Step 5: Commit** as `fix(check): rechaza entradas malformadas del catálogo`.
++
++### Task 8: Pin the reviewed SDD and setup invariants
++
++**Files:**
++- Modify: `tests/test-sdd-contract.sh`
++- Modify: `tests/test-no-superpowers-dependency.sh`
++
++**Interfaces:**
++- Consumes: the local SDD rules and the setup/configuration contract.
++- Produces: regression tests that fail if any of the six leakage-prevention rules or safe local-link/MCP setup invariants are removed.
++
++- [x] **Step 1: Extend the SDD contract test** to assert all six leakage-prevention rules and forbid `git add -A` while requiring staging only `Files` paths.
++- [x] **Step 2: Extend the setup contract test** to assert the local skills directory remains in the global link set and both `context7` and `codegraph` remain configured.
++- [x] **Step 3: Run mutation checks** with temporary copies missing one SDD rule, the skills link, and one MCP; each mutated fixture must fail.
++- [x] **Step 4: Run the real SDD and setup contract tests.** Expected: both pass on the repository files.
++- [ ] **Step 5: Commit** as `test(sdd): cubre invariantes del flujo local`.
++
++### Task 9: Backfill per-task SDD traceability
++
++**Files:**
++- Create: `.work/sdd/2026-10-20-sdd-local/task-{1..8}-brief.md`
++- Create: `.work/sdd/2026-10-20-sdd-local/task-{1..8}-report.md`
++- Create: `.work/sdd/2026-10-20-sdd-local/review-<commit-range>.diff`
++- Create: `tests/test-sdd-artifacts.sh`
++
++**Interfaces:**
++- Consumes: commits for Tasks 1–8, the approved spec, and the implementation plan.
++- Produces: versioned, auditable task briefs, execution reports, and exact diff inputs for task reviews; reports state clearly when review was aggregate or retrospective.
++
++- [ ] **Step 1: Write the artifact completeness test.** Require each completed task 1–8 to have a nonempty brief, report, and every review diff referenced by its report.
++- [ ] **Step 2: Run `bash tests/test-sdd-artifacts.sh`.** Expected: RED because per-task artifacts are missing.
++- [ ] **Step 3: Backfill briefs and reports** from the approved plan and actual commit history; record only observed verification results and review verdicts, never invent task-level reviews.
++- [ ] **Step 4: Generate exact diff snapshots** for each task's commit range and the Task 5 review-fix commit; record the commit mapping in each report.
++- [ ] **Step 5: Run `bash tests/test-sdd-artifacts.sh` and inspect each report/diff pairing.** Expected: PASS; every completed task report points to an existing diff snapshot.
++- [ ] **Step 6: Commit** as `docs(sdd): completa artefactos por tarea`.
++
+ ## Final gate
+ 
+-- [x] Run the five shell contract tests, `python3 tests/test_check_skills.py`, and `tests/test-link.sh`.
++- [ ] Run all six shell contract tests, `python3 tests/test_check_skills.py`, and `tests/test-link.sh`.
+ - [x] Run `bash -n scripts/check.sh`, parse `scripts/check_skills.py`, and run `git diff --check`.
+ - [x] Read the full SDD range diff; confirm unrelated untracked skills and the local Superpowers installation remain untouched.
+ - [x] Run `make check` and verify the local skills in OpenCode V2.
+diff --git a/scripts/check_skills.py b/scripts/check_skills.py
+index 46a4631..4608cfb 100644
+--- a/scripts/check_skills.py
++++ b/scripts/check_skills.py
+@@ -13,8 +13,13 @@ def missing_required_skills(payload, required, expected_skill_dir):
+ 
+     by_id = {}
+     for item in payload["data"]:
+-        if isinstance(item, dict) and isinstance(item.get("id"), str):
+-            by_id.setdefault(item["id"], []).append(item)
++        if (not isinstance(item, dict)
++                or not isinstance(item.get("id"), str)
++                or not item["id"]
++                or not isinstance(item.get("path"), str)
++                or not item["path"]):
++            raise ValueError("cada entrada del catálogo debe incluir `id` y `path`")
++        by_id.setdefault(item["id"], []).append(item)
+ 
+     expected_root = Path(expected_skill_dir).resolve()
+     problems = []
+diff --git a/tests/test_check_skills.py b/tests/test_check_skills.py
+index b5ca16a..c51afa3 100644
+--- a/tests/test_check_skills.py
++++ b/tests/test_check_skills.py
+@@ -1,11 +1,15 @@
+ #!/usr/bin/env python3
++import os
+ import sys
+ import tempfile
+ import unittest
+ from pathlib import Path
+ 
+ sys.dont_write_bytecode = True
+-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
++sys.path.insert(0, os.environ.get(
++    "CHECK_SKILLS_DIR",
++    str(Path(__file__).resolve().parents[1] / "scripts"),
++))
+ 
+ from check_skills import missing_required_skills
+ 
+@@ -60,6 +64,18 @@ class MissingRequiredSkillsTests(unittest.TestCase):
+         with self.assertRaises(ValueError):
+             missing_required_skills({"skills": []}, REQUIRED, self.local_skills)
+ 
++    def test_rejects_malformed_catalog_entry_even_when_required_ids_exist(self):
++        malformed_entries = [
++            {"name": "skill without an ID", "path": "/external/SKILL.md"},
++            {"id": "external-skill"},
++        ]
++        for malformed in malformed_entries:
++            with self.subTest(malformed=malformed):
++                payload = self.catalog()
++                payload["data"].append(malformed)
++                with self.assertRaises(ValueError):
++                    missing_required_skills(payload, REQUIRED, self.local_skills)
++
+ 
+ if __name__ == "__main__":
+     unittest.main()
