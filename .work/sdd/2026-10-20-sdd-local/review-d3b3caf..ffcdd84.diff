@@ -1,0 +1,208 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/progress.md b/.work/sdd/2026-10-20-sdd-local/progress.md
+index 83aa617..199d0cd 100644
+--- a/.work/sdd/2026-10-20-sdd-local/progress.md
++++ b/.work/sdd/2026-10-20-sdd-local/progress.md
+@@ -6,7 +6,8 @@ Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-
+ Task 2: complete (commits b78ae28..ead78ae, tests: SDD contract + local skill catalog + link regression → PASS)
+ Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit-example.sh` → PASS)
+ Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
+-Task 5: in progress
++Task 5: complete (commits ad5436b..d3b3caf, tests: runtime catalog parser + dependency check + `make check` → PASS)
++Task 6: complete (commits d3b3caf..7e00dd9, tests: optional docs + dependency check → PASS)
+ 
+ ## Pre-flight
+ 
+@@ -28,6 +29,7 @@ Task 5: in progress
+ - Ruling: Fix the two Make recipe indentation errors found by `make -n setup` before accepting the dependency-removal test — the recipes had spaces instead of tabs — cost if wrong: setup would stop at parse time.
+ - Ruling: Keep the earlier user-approved model/plugin commits on their existing branch; review this SDD feature from `d51c2d0` — those commits predate and are separate from the approved SDD spec — cost if wrong: a future PR from this branch to `main` still includes that earlier history.
+ - Ruling: Add an API-backed runtime skill check to `make check` — review found static file checks did not prove OpenCode's effective catalog — cost if wrong: `make check` depends on the documented V2 `/api/skill` route.
++- Ruling: Document Impeccable and Matt Pocock skills as optional companions, not setup requirements — user requested references for existing installations while keeping the repo usable for newcomers — cost if wrong: users may overestimate how much the local workflow relies on these external catalogs.
+ 
+ ## Hazards abiertos
+ 
+@@ -64,11 +66,17 @@ Task 5: in progress
+ - `bash tests/test-no-superpowers-dependency.sh`, `make -n setup`, `bash -n scripts/check.sh`, `bash -n tests/test-no-superpowers-dependency.sh`, and `git diff --check` → PASS after dependency removal.
+ - `make check` → PASS: config parsed, agents and MCPs loaded, six required local skills verified, and all harness checks succeeded.
+ - `python3 tests/test_check_skills.py` → 3/3 PASS; `tests/test-no-superpowers-dependency.sh` → PASS with the runtime API assertion; `make check` → PASS and reports all six required IDs from OpenCode's catalog.
++- Task 5 final suite after commit: local-skill, SDD-contract, dependency, agent-example, and link tests passed; parser tests 3/3; `make -n setup`, syntax checks, and `make check` passed.
+ - `opencode api skill.list --param 'location[directory]=/home/ubuntu/projects/opencode-harness'` → returned all six required IDs from `/home/ubuntu/.config/opencode/skills`, the linked repo directory.
+ - Loaded `ship-change`, `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification` via the skill tool after removal of the external skill source → all six resolved from `~/.config/opencode/skills`.
+-- Review feedback on `origin/main..HEAD`: prior user-approved model/plugin commits were outside this SDD spec; the feature review is therefore anchored at `d51c2d0`. Runtime discovery lacked regression coverage; the API parser test and `make check` integration now cover it.
++- Initial review on `origin/main..HEAD` included prior user-approved model/plugin commits outside this SDD spec and found no automated runtime-discovery check. The SDD review range was narrowed to `d51c2d0`; the runtime finding was fixed in Task 5.
+ - Initial `make check` after a service restart briefly missed `developer` in its second catalog query; after waiting four seconds, the direct catalog had `developer` and the full check passed. This matches the documented service warm-up race; no code change was made for it.
+-- `opencode api skill.list --param 'location[directory]=/home/ubuntu/projects/opencode-harness'` → returned the six required IDs from the linked global skill directory.
++- `bash tests/test-optional-skills-docs.sh` → RED before doc changes; PASS after README/NOTAS links, optional wording, UI scope and local-fallback note were added.
+ - Final pre-commit suite: `test-local-skill-catalog.sh`, `test-sdd-contract.sh`, `test-no-superpowers-dependency.sh`, `test-agent-commit-example.sh`, `test-link.sh`, `make -n setup`, `make check`, Bash syntax, and `git diff --check` → all passed.
++- Final reviewer on `d51c2d0..d3b3caf` → clean on Standards and Spec, no minors; tests were verified separately above.
++- `bash tests/test-optional-skills-docs.sh` → RED before docs edits: missing optional catalog links, optional status, fallback statement, architecture-skill mention, and Impeccable UI scope.
++- `bash tests/test-optional-skills-docs.sh` → PASS after README/NOTAS updates; `tests/test-no-superpowers-dependency.sh` also passes, confirming no optional runtime dependency was added.
++- Task 6 commit `7e00dd9` documents the optional companion catalogs; the full final gate and feature-range review follow.
++- Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
+ - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
+ - `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.
+diff --git a/NOTAS.md b/NOTAS.md
+index 69ff107..49f249f 100644
+--- a/NOTAS.md
++++ b/NOTAS.md
+@@ -148,6 +148,16 @@ y un `SKILL.md` con `description`; `scripts/check.sh` verifica los IDs requerido
+ Los skills personales adicionales pueden descubrirse desde `~/.agents/skills`,
+ pero no se convierten por eso en dependencias de `make setup`.
+ 
++### Catálogos opcionales
++
++El README recomienda [Matt Pocock](https://github.com/mattpocock/skills) para
++capacidades adicionales (por ejemplo `improve-codebase-architecture`, `triage`
++y `retro`) e [Impeccable](https://github.com/pbakaus/impeccable) para trabajo de
++UI. La recomendación no es un requisito del arnés: `make setup`, `make check` y
++`/ship` funcionan con las skills versionadas localmente. Además, las prácticas
++seleccionadas de Matt Pocock ya están adaptadas como skills locales; no se
++necesita instalar otra copia para completar el flujo SDD.
++
+ ### 2. `codegraph install` no entendería la config ni aguantaría el symlink
+ 
+ Dos motivos, y el segundo es el que duele:
+diff --git a/README.md b/README.md
+index 8eb894c..a2fe357 100644
+--- a/README.md
++++ b/README.md
+@@ -74,6 +74,24 @@ descubre los tests leyendo tu `AGENTS.md` y tu `Makefile`, y dice de dónde los
+ ha sacado. Lo específico se queda en el `AGENTS.md` de cada repo, que es la
+ fuente de verdad del proyecto.
+ 
++## Skills opcionales para otros proyectos
++
++El flujo de este repo es autónomo: `make setup`, `make check` y `/ship` usan las
++skills locales incluidas aquí. No hace falta instalar catálogos externos para
++desarrollar con el arnés.
++
++Si ya usas otros catálogos, pueden complementar el flujo cuando una tarea lo
++requiera:
++
++| Catálogo | Cuándo puede ayudar |
++|---|---|
++| [Matt Pocock — Skills for Real Engineers](https://github.com/mattpocock/skills) | Skills adicionales como `improve-codebase-architecture`, `triage` o `retro`. Este repo ya incluye adaptaciones locales de TDD, diagnóstico, diseño de módulos, review y verificación. |
++| [Impeccable](https://github.com/pbakaus/impeccable) | Diseño, crítica y auditoría de interfaces en proyectos con UI. Este arnés no tiene una interfaz de producto propia. |
++
++Son recomendaciones opcionales, no dependencias: no se instalan ni se exigen
++en `make setup` o `make check`, y el SDD local funciona aunque no estén
++disponibles.
++
+ ## Si algo falla
+ 
+ | Síntoma | Causa |
+@@ -98,7 +116,7 @@ wsl -d Ubuntu -e tail -n 30 /tmp/opencode-serve/4096.log
+ 
+ ## Notas
+ 
+-Ocho trampas de opencode que este repo esquiva, con el porqué de cada una, en
++Ocho reglas operativas de opencode que este repo sigue, con el porqué de cada una, en
+ [NOTAS.md](NOTAS.md). La que más cuesta: `opencode debug agents` y compañía no
+ leen el disco, preguntan al service en background, así que pueden mentir aunque
+ todo esté bien en el fichero.
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+index 73d1348..76e1d04 100644
+--- a/docs/plans/2026-10-20-sdd-local.md
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -134,12 +134,30 @@
+ - [x] **Step 5: Implement the parser and runtime check.** Keep static file checks, query `/api/skill` with `location[directory]`, and surface API or missing-ID failures through `check.sh`.
+ - [x] **Step 6: Run the parser and dependency tests.** Expected: PASS; missing runtime skills fail even if their local files exist.
+ - [x] **Step 7: Verify the live API** returns all required skill IDs for this repo, then run `make check`. Expected: all local skills are found and the harness gate passes.
+-- [ ] **Step 8: Commit** as `fix(check): verifica skills en el catálogo de OpenCode`.
++- [x] **Step 8: Commit** as `fix(check): verifica skills en el catálogo de OpenCode`.
++
++### Task 6: Document optional companion skill catalogs
++
++**Files:**
++- Modify: `README.md`
++- Modify: `NOTAS.md`
++- Modify: `docs/specs/2026-10-20-sdd-local-design.md`
++- Test: `tests/test-optional-skills-docs.sh`
++
++**Interfaces:**
++- Consumes: local required skill catalog from Tasks 1 and 5.
++- Produces: user-facing distinction between required local skills and optional external catalogs; no installation/configuration dependency is added.
++
++- [x] **Step 1: Write the failing docs contract test.** Require links to Impeccable and Matt Pocock in README and notes, an optional label, the optional `improve-codebase-architecture` skill, a statement the repo works without installing these catalogs, Impeccable scoped to UI, and no external entries in setup/config/check.
++- [x] **Step 2: Run `bash tests/test-optional-skills-docs.sh`.** Expected: FAIL because the README does not yet document these optional companions.
++- [x] **Step 3: Update README and NOTAS.** Explain the local SDD remains self-contained; mention Matt's optional `improve-codebase-architecture`/`triage` and the Impeccable UI-design skill by upstream link. Do not claim the harness itself has a UI or add install commands, packages, plugins, or config entries.
++- [x] **Step 4: Run the docs contract test and `git diff --check`.** Expected: PASS and no whitespace issues.
++- [x] **Step 5: Commit** as `docs(readme): menciona skills opcionales`.
+ 
+ ## Final gate
+ 
+-- [ ] Run all four new shell tests, `python3 tests/test_check_skills.py`, and `tests/test-link.sh`.
+-- [ ] Run `bash -n scripts/check.sh`, parse `scripts/check_skills.py`, and run `git diff --check`.
+-- [ ] Read the full final diff; confirm no edits to unrelated untracked skills and no removal of the user's installed package.
+-- [ ] Run `make check` and verify the local skills in OpenCode V2.
+-- [ ] Review the full branch against `docs/specs/2026-10-20-sdd-local-design.md` before any push or merge.
++- [x] Run the five shell contract tests, `python3 tests/test_check_skills.py`, and `tests/test-link.sh`.
++- [x] Run `bash -n scripts/check.sh`, parse `scripts/check_skills.py`, and run `git diff --check`.
++- [x] Read the full SDD range diff; confirm unrelated untracked skills and the local Superpowers installation remain untouched.
++- [x] Run `make check` and verify the local skills in OpenCode V2.
++- [ ] Review the SDD range `d51c2d0..HEAD` against `docs/specs/2026-10-20-sdd-local-design.md` before any push or merge; earlier approved model/plugin commits predate this spec.
+diff --git a/docs/specs/2026-10-20-sdd-local-design.md b/docs/specs/2026-10-20-sdd-local-design.md
+index 62ee6a7..309242f 100644
+--- a/docs/specs/2026-10-20-sdd-local-design.md
++++ b/docs/specs/2026-10-20-sdd-local-design.md
+@@ -15,6 +15,8 @@ Eliminar la dependencia operativa de Superpowers y mantener un SDD completo, pro
+ - **Sí:** conservar las reglas existentes contra hallazgos diferidos sin destino, hazards, contradicciones con `AGENTS.md`, tests que no fallaron primero, afirmaciones sin evidencia y escalaciones de producto perdidas.
+ - **Sí:** retirar la instalación/configuración de Superpowers y sustituir sus referencias por skills locales.
+ - **Sí:** usar como material de partida, adaptado y no como dependencia de ejecución, prácticas de TDD, diagnóstico de bugs, code review y diseño de arquitectura de Matt Pocock.
++- **Sí:** documentar Impeccable y el catálogo de Matt Pocock como complementos opcionales para usuarios que ya los tengan o quieran consultarlos; Impeccable se recomienda para trabajo de UI y el material de Matt complementa el catálogo local.
++- **No:** hacer que las skills externas sean requisitos de `make setup`, `make check` o `/ship`; el flujo SDD debe seguir funcionando con las skills versionadas aquí.
+ - **Sí:** tratar el `skills/tdd/` local sin seguimiento como material de partida para TDD; revisar y adaptar su contenido, no sobrescribirlo a ciegas.
+ - **No:** importar el catálogo completo de Matt Pocock ni su setup de issue tracker, `to-spec` o `implement-spec` sin adaptación.
+ - **No:** borrar automáticamente una instalación existente en `~/.local/share/superpowers`.
+@@ -62,6 +64,7 @@ La eliminación sólo afecta a la dependencia del repo: no ejecutará desinstala
+ 5. Specs y planes nuevos usan `docs/specs/` y `docs/plans/`; el estado de tareas usa `.work/sdd/`.
+ 6. La documentación y ejemplos no enseñan rutas ni comandos operativos obsoletos de Superpowers.
+ 7. La instalación local preexistente y los skills sin seguimiento quedan intactos.
++8. README y notas distinguen skills propias requeridas de catálogos externos opcionales, con enlaces y alcance; ninguna verificación o setup depende de estos catálogos.
+ 
+ ## Verificación prevista
+ 
+diff --git a/tests/test-optional-skills-docs.sh b/tests/test-optional-skills-docs.sh
+new file mode 100644
+index 0000000..85571dc
+--- /dev/null
++++ b/tests/test-optional-skills-docs.sh
+@@ -0,0 +1,39 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++readme="$REPO_DIR/README.md"
++notes="$REPO_DIR/NOTAS.md"
++failures=0
++
++fail() {
++  printf 'FAIL: %s\n' "$*" >&2
++  failures=$((failures + 1))
++}
++
++for url in \
++  'https://github.com/pbakaus/impeccable' \
++  'https://github.com/mattpocock/skills'; do
++  grep -Fq "$url" "$readme" || fail "README.md does not reference $url"
++  grep -Fq "$url" "$notes" || fail "NOTAS.md does not reference $url"
++done
++
++grep -Eqi 'opcional|opcionales' "$readme" || fail 'README.md does not label the external skills optional'
++grep -Fq 'improve-codebase-architecture' "$readme" || fail 'README.md omits the optional Matt Pocock architecture skill'
++grep -Fq 'triage' "$notes" || fail 'NOTAS.md omits the optional Matt Pocock triage skill'
++grep -Eqi 'no hace falta instalar|no requiere.*instalar' "$readme" \
++  || fail 'README.md does not say the repo works without the optional skills'
++grep -Eqi 'Impeccable.{0,180}(interfaz|UI)|(interfaz|UI).{0,180}Impeccable' "$readme" \
++  || fail 'README.md does not scope Impeccable to UI work'
++
++for file in Makefile opencode.jsonc scripts/check.sh; do
++  if grep -qiE 'impeccable|mattpocock/skills' "$REPO_DIR/$file"; then
++    fail "$file turns an optional skills catalog into setup/config/check dependency"
++  fi
++done
++
++if [ "$failures" -ne 0 ]; then
++  exit 1
++fi
++
++printf 'PASS: optional skill references are documented without becoming dependencies\n'

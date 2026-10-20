@@ -4,6 +4,10 @@
 
 **TDD evidence:** The malformed-entry test against the committed pre-fix parser failed with `ValueError not raised`. Regression cases cover missing, empty, and non-string IDs and paths. After adding the review-requested variants, `python3 tests/test_check_skills.py` printed `Ran 6 tests ... OK`.
 
-**Review context:** Reviewer verdict: **approved with findings**; Important coverage gap for empty/non-string fields. Those variants are added to the test; the parser guard already rejects them. No external dependency or user skill directory was changed.
+**Review context:** First verdict: **approved with findings**; Important coverage gap for empty/non-string fields. After adding all requested variants, follow-up verdict: **clean**, no findings. Reviewers did not run tests. No external dependency or user skill directory was changed.
+
+**Review diff:** `review-79676bf..03b7b07.diff` covers the coverage follow-up.
+
+**Review diff:** `review-79676bf..03b7b07.diff` covers the regression-coverage follow-up.
 
 **Deferred findings:** none.

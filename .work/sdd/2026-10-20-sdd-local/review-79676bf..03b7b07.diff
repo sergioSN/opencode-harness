@@ -1,0 +1,45 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/task-7-brief.md b/.work/sdd/2026-10-20-sdd-local/task-7-brief.md
+index 28e3723..4b4a8a2 100644
+--- a/.work/sdd/2026-10-20-sdd-local/task-7-brief.md
++++ b/.work/sdd/2026-10-20-sdd-local/task-7-brief.md
+@@ -4,7 +4,7 @@
+ - Modify: `scripts/check_skills.py`
+ - Test: `tests/test_check_skills.py`
+ 
+-**Contract:** Reject any catalog `data` entry without a nonempty string `id` and `path`, even when all required valid IDs are present. Keep the existing missing-ID, duplicate-ID, and local-source checks.
++**Contract:** Reject any catalog `data` entry with a missing, empty, or non-string `id` or `path`, even when all required valid IDs are present. Keep the existing missing-ID, duplicate-ID, and local-source checks.
+ 
+ **Does not authorize:** changing required skill IDs, touching optional skills, or changing OpenCode configuration.
+ 
+diff --git a/.work/sdd/2026-10-20-sdd-local/task-7-report.md b/.work/sdd/2026-10-20-sdd-local/task-7-report.md
+index cb8d63b..89b5e7b 100644
+--- a/.work/sdd/2026-10-20-sdd-local/task-7-report.md
++++ b/.work/sdd/2026-10-20-sdd-local/task-7-report.md
+@@ -1,9 +1,9 @@
+ # Task 7 report — reject malformed skill catalog entries
+ 
+-**Result:** `scripts/check_skills.py` now rejects `/api/skill` entries without nonempty string `id` and `path` before checking required IDs.
++**Result:** `scripts/check_skills.py` rejects `/api/skill` entries with missing, empty, or non-string `id` or `path` before checking required IDs.
+ 
+-**TDD evidence:** The malformed-entry test against the committed pre-fix parser failed twice with `ValueError not raised`, once for the missing ID and once for the missing path. Against the fix, `python3 tests/test_check_skills.py` passed 6/6.
++**TDD evidence:** The malformed-entry test against the committed pre-fix parser failed with `ValueError not raised`. Regression cases cover missing, empty, and non-string IDs and paths. After adding the review-requested variants, `python3 tests/test_check_skills.py` printed `Ran 6 tests ... OK`.
+ 
+-**Review context:** This closes the malformed-entry input left open while fixing the reviewer’s source-precedence finding. No external dependency or user skill directory was changed.
++**Review context:** Reviewer verdict: **approved with findings**; Important coverage gap for empty/non-string fields. Those variants are added to the test; the parser guard already rejects them. No external dependency or user skill directory was changed.
+ 
+ **Deferred findings:** none.
+diff --git a/tests/test_check_skills.py b/tests/test_check_skills.py
+index c51afa3..351649d 100644
+--- a/tests/test_check_skills.py
++++ b/tests/test_check_skills.py
+@@ -68,6 +68,10 @@ class MissingRequiredSkillsTests(unittest.TestCase):
+         malformed_entries = [
+             {"name": "skill without an ID", "path": "/external/SKILL.md"},
+             {"id": "external-skill"},
++            {"id": "", "path": "/external/SKILL.md"},
++            {"id": 123, "path": "/external/SKILL.md"},
++            {"id": "external-skill", "path": ""},
++            {"id": "external-skill", "path": 123},
+         ]
+         for malformed in malformed_entries:
+             with self.subTest(malformed=malformed):

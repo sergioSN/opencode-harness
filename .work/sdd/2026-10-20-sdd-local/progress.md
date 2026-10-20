@@ -9,7 +9,8 @@ Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
 Task 5: complete (commit d3b3caf plus source-precedence follow-up, tests: parser 5/5 + dependency check + `make check` → PASS)
 Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PASS)
 Task 7: complete (commits 79676bf, 03b7b07; parser suite 6/6, malformed-field mutation → RED)
-Task 8: in progress
+Task 8: complete (commits faf2c0f, b80ffce, 80804fc, e421ae1; contract and mutation tests PASS; final review clean)
+Task 9: in progress
 
 ## Pre-flight
 
@@ -83,6 +84,9 @@ Task 8: in progress
 - `tests/test_check_skills.py` after the review fix → 5/5 PASS; `make check` resolves each required API path to its corresponding repo-local `SKILL.md` through the global symlink.
 - Task 7 malformed-entry test against the committed pre-fix parser → RED (`ValueError not raised`); updated parser → 6/6 PASS.
 - Task 7 review follow-up: reviewer found empty/non-string id/path cases missing; added all four variants and committed as `03b7b07`, parser suite still 6/6 PASS.
+- Task 7 final follow-up review on `79676bf..03b7b07` → clean, no findings; reviewer did not run tests.
+- Task 8 reviewers caught false positives in MCP/link assertions and JSON shape validation; fixed through exact link matching and JSONC object validation. Comment/near-match/array mutation fixtures fail, both actual contract tests pass, and final review on `80804fc..e421ae1` → clean.
+- Final pre-close gate: all seven shell tests PASS; parser tests 6/6; Bash/Python syntax checks pass; `make -n setup` and `make check` pass; artifact completeness test finds briefs, reports, and referenced diff snapshots for Tasks 1–8.
 - Task 6 commit `ffcdd84` documents the optional companion catalogs; the feature-range review found an important source-precedence gap, fixed in the follow-up parser commit.
 - Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
 - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.

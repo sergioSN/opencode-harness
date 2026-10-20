@@ -1,0 +1,224 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/progress.md b/.work/sdd/2026-10-20-sdd-local/progress.md
+index 199d0cd..cc3bcbf 100644
+--- a/.work/sdd/2026-10-20-sdd-local/progress.md
++++ b/.work/sdd/2026-10-20-sdd-local/progress.md
+@@ -6,8 +6,8 @@ Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-
+ Task 2: complete (commits b78ae28..ead78ae, tests: SDD contract + local skill catalog + link regression → PASS)
+ Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit-example.sh` → PASS)
+ Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
+-Task 5: complete (commits ad5436b..d3b3caf, tests: runtime catalog parser + dependency check + `make check` → PASS)
+-Task 6: complete (commits d3b3caf..7e00dd9, tests: optional docs + dependency check → PASS)
++Task 5: complete (commit d3b3caf plus source-precedence follow-up, tests: parser 5/5 + dependency check + `make check` → PASS)
++Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PASS)
+ 
+ ## Pre-flight
+ 
+@@ -73,10 +73,13 @@ Task 6: complete (commits d3b3caf..7e00dd9, tests: optional docs + dependency ch
+ - Initial `make check` after a service restart briefly missed `developer` in its second catalog query; after waiting four seconds, the direct catalog had `developer` and the full check passed. This matches the documented service warm-up race; no code change was made for it.
+ - `bash tests/test-optional-skills-docs.sh` → RED before doc changes; PASS after README/NOTAS links, optional wording, UI scope and local-fallback note were added.
+ - Final pre-commit suite: `test-local-skill-catalog.sh`, `test-sdd-contract.sh`, `test-no-superpowers-dependency.sh`, `test-agent-commit-example.sh`, `test-link.sh`, `make -n setup`, `make check`, Bash syntax, and `git diff --check` → all passed.
+-- Final reviewer on `d51c2d0..d3b3caf` → clean on Standards and Spec, no minors; tests were verified separately above.
++- Final reviewer on `d51c2d0..ffcdd84` found one Important Spec issue: runtime catalog validation did not reject a same-ID skill from another source. Fixed by comparing each resolved catalog path with the expected repo-local `SKILL.md`; the shadowing regression test and parser suite pass.
+ - `bash tests/test-optional-skills-docs.sh` → RED before docs edits: missing optional catalog links, optional status, fallback statement, architecture-skill mention, and Impeccable UI scope.
+ - `bash tests/test-optional-skills-docs.sh` → PASS after README/NOTAS updates; `tests/test-no-superpowers-dependency.sh` also passes, confirming no optional runtime dependency was added.
+-- Task 6 commit `7e00dd9` documents the optional companion catalogs; the full final gate and feature-range review follow.
++- Reviewer recheck on `d51c2d0..ffcdd84` found that the API parser checked IDs but not source paths; a same-ID skill from another catalog could shadow the local copy.
++- TDD for the review fix: the shadow-source regression test failed because the parser did not accept an expected local directory; after path validation, parser tests pass 5/5.
++- `tests/test_check_skills.py` after the review fix → 5/5 PASS; `make check` resolves each required API path to its corresponding repo-local `SKILL.md` through the global symlink.
++- Task 6 commit `ffcdd84` documents the optional companion catalogs; the feature-range review found an important source-precedence gap, fixed in the follow-up parser commit.
+ - Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
+ - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
+ - `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+index 76e1d04..b62cc5e 100644
+--- a/docs/plans/2026-10-20-sdd-local.md
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -125,14 +125,14 @@
+ 
+ **Interfaces:**
+ - Consumes: Task 1's required local skill IDs and OpenCode V2's `GET /api/skill` response for the current directory.
+-- Produces: `missing_required_skills(payload, required)`, which returns missing IDs or raises `ValueError` for an invalid response; `make check` fails when a required skill file exists but OpenCode does not discover it.
++- Produces: `missing_required_skills(payload, required, expected_skill_dir)`, which returns IDs missing from the runtime catalog or resolved to another source, and raises `ValueError` for an invalid response.
+ 
+ - [x] **Step 1: Extend the dependency test** to require `check.sh` to query `opencode api skill.list` with the current project location.
+ - [x] **Step 2: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: FAIL because the runtime query is not present.
+-- [x] **Step 3: Write the parser unit test** for a complete API payload, a missing required ID, and malformed data.
+-- [x] **Step 4: Run `python3 tests/test_check_skills.py`.** Expected: FAIL because `scripts/check_skills.py` and the helper are not implemented.
+-- [x] **Step 5: Implement the parser and runtime check.** Keep static file checks, query `/api/skill` with `location[directory]`, and surface API or missing-ID failures through `check.sh`.
+-- [x] **Step 6: Run the parser and dependency tests.** Expected: PASS; missing runtime skills fail even if their local files exist.
++- [x] **Step 3: Write the parser unit test** for a complete API payload, a missing required ID, an invalid response, and a same-ID skill resolved from a different directory.
++- [x] **Step 4: Run `python3 tests/test_check_skills.py`.** Expected: RED because the helper does not yet accept or validate the expected local skill directory.
++- [x] **Step 5: Implement the parser and runtime check.** Resolve each API path and compare it with `<expected_skill_dir>/<id>/SKILL.md`; keep static file checks and surface API, missing-ID, and shadowed-source failures through `check.sh`.
++- [x] **Step 6: Run the parser and dependency tests.** Expected: PASS; absent and shadowed skills fail even when same-ID files exist elsewhere.
+ - [x] **Step 7: Verify the live API** returns all required skill IDs for this repo, then run `make check`. Expected: all local skills are found and the harness gate passes.
+ - [x] **Step 8: Commit** as `fix(check): verifica skills en el catálogo de OpenCode`.
+ 
+@@ -160,4 +160,4 @@
+ - [x] Run `bash -n scripts/check.sh`, parse `scripts/check_skills.py`, and run `git diff --check`.
+ - [x] Read the full SDD range diff; confirm unrelated untracked skills and the local Superpowers installation remain untouched.
+ - [x] Run `make check` and verify the local skills in OpenCode V2.
+-- [ ] Review the SDD range `d51c2d0..HEAD` against `docs/specs/2026-10-20-sdd-local-design.md` before any push or merge; earlier approved model/plugin commits predate this spec.
++- [x] Review the SDD range `d51c2d0..ffcdd84` against `docs/specs/2026-10-20-sdd-local-design.md`; fix the Important source-precedence finding with a local-path regression test and rerun the full verification gate before considering a push or merge.
+diff --git a/scripts/check.sh b/scripts/check.sh
+index e3a3274..3813ccd 100755
+--- a/scripts/check.sh
++++ b/scripts/check.sh
+@@ -279,7 +279,7 @@ echo
+ say "consultando el catálogo de skills de OpenCode para $REPO_DIR..."
+ if skills_out="$(opencode api skill.list \
+     --param "location[directory]=$REPO_DIR" 2>&1 \
+-    | python3 "$REPO_DIR/scripts/check_skills.py" "${REQUIRED_SKILLS[@]}" 2>&1)"; then
++    | python3 "$REPO_DIR/scripts/check_skills.py" "$OC_DIR/skills" "${REQUIRED_SKILLS[@]}" 2>&1)"; then
+   ok "$skills_out"
+ else
+   bad "$skills_out"
+diff --git a/scripts/check_skills.py b/scripts/check_skills.py
+index 3031f25..46a4631 100644
+--- a/scripts/check_skills.py
++++ b/scripts/check_skills.py
+@@ -2,37 +2,65 @@
+ """Valida skills requeridos en el catálogo runtime de OpenCode."""
+ 
+ import json
++from pathlib import Path
+ import sys
+ 
+ 
+-def missing_required_skills(payload, required):
+-    """Devuelve IDs requeridos ausentes en una respuesta GET /api/skill."""
++def missing_required_skills(payload, required, expected_skill_dir):
++    """Devuelve IDs ausentes o resueltos fuera del catálogo local esperado."""
+     if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+         raise ValueError("la respuesta del catálogo debe contener una lista `data`")
+ 
+-    discovered = {
+-        item.get("id")
+-        for item in payload["data"]
+-        if isinstance(item, dict) and isinstance(item.get("id"), str)
+-    }
+-    return [skill_id for skill_id in required if skill_id not in discovered]
++    by_id = {}
++    for item in payload["data"]:
++        if isinstance(item, dict) and isinstance(item.get("id"), str):
++            by_id.setdefault(item["id"], []).append(item)
++
++    expected_root = Path(expected_skill_dir).resolve()
++    problems = []
++    for skill_id in required:
++        entries = by_id.get(skill_id, [])
++        if len(entries) != 1:
++            problems.append(skill_id)
++            continue
++
++        path = entries[0].get("path")
++        if not isinstance(path, str):
++            problems.append(skill_id)
++            continue
++
++        expected_path = (expected_root / skill_id / "SKILL.md").resolve()
++        try:
++            actual_path = Path(path).resolve()
++        except (OSError, RuntimeError):
++            problems.append(skill_id)
++            continue
++        if actual_path != expected_path:
++            problems.append(skill_id)
++
++    return problems
+ 
+ 
+ def main():
+-    required = sys.argv[1:]
++    if len(sys.argv) < 3:
++        print("uso: check_skills.py <directorio-local> <skill-id>...", file=sys.stderr)
++        return 2
++
++    expected_skill_dir = sys.argv[1]
++    required = sys.argv[2:]
+     if not required:
+         print("debe indicarse al menos un ID de skill requerido", file=sys.stderr)
+         return 2
+ 
+     try:
+         payload = json.load(sys.stdin)
+-        missing = missing_required_skills(payload, required)
++        missing = missing_required_skills(payload, required, expected_skill_dir)
+     except (json.JSONDecodeError, ValueError) as error:
+         print("OpenCode devolvió un catálogo de skills inválido: %s" % error, file=sys.stderr)
+         return 1
+ 
+     if missing:
+-        print("OpenCode no descubrió los skills requeridos: %s" % ", ".join(missing), file=sys.stderr)
++        print("OpenCode no descubrió los skills locales esperados: %s" % ", ".join(missing), file=sys.stderr)
+         return 1
+ 
+     print("OpenCode descubrió todos los skills locales requeridos: %s" % ", ".join(required))
+diff --git a/tests/test_check_skills.py b/tests/test_check_skills.py
+index 3907d1e..b5ca16a 100644
+--- a/tests/test_check_skills.py
++++ b/tests/test_check_skills.py
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env python3
+ import sys
++import tempfile
+ import unittest
+ from pathlib import Path
+ 
+@@ -13,19 +14,51 @@ REQUIRED = ["ship-change", "tdd", "diagnosing-bugs", "code-review", "codebase-de
+ 
+ 
+ class MissingRequiredSkillsTests(unittest.TestCase):
+-    def test_complete_runtime_catalog_has_no_missing_skills(self):
+-        payload = {"data": [{"id": skill_id} for skill_id in REQUIRED]}
++    def setUp(self):
++        self.temporary = tempfile.TemporaryDirectory()
++        self.addCleanup(self.temporary.cleanup)
++        self.root = Path(self.temporary.name)
++        self.local_skills = self.root / "local-skills"
++        for skill_id in REQUIRED:
++            skill_dir = self.local_skills / skill_id
++            skill_dir.mkdir(parents=True)
++            (skill_dir / "SKILL.md").write_text("---\nname: %s\n---\n" % skill_id)
++
++    def catalog(self):
++        return {"data": [
++            {"id": skill_id, "path": str(self.local_skills / skill_id / "SKILL.md")}
++            for skill_id in REQUIRED
++        ]}
+ 
+-        self.assertEqual([], missing_required_skills(payload, REQUIRED))
++    def test_complete_runtime_catalog_has_no_missing_skills(self):
++        self.assertEqual([], missing_required_skills(self.catalog(), REQUIRED, self.local_skills))
+ 
+     def test_reports_required_ids_missing_from_runtime(self):
+-        payload = {"data": [{"id": skill_id} for skill_id in REQUIRED if skill_id != "code-review"]}
++        payload = self.catalog()
++        payload["data"] = [item for item in payload["data"] if item["id"] != "code-review"]
++
++        self.assertEqual(["code-review"], missing_required_skills(payload, REQUIRED, self.local_skills))
++
++    def test_reports_local_skill_shadowed_by_another_catalog(self):
++        payload = self.catalog()
++        elsewhere = self.root / "other-skills" / "code-review" / "SKILL.md"
++        elsewhere.parent.mkdir(parents=True)
++        elsewhere.write_text("---\nname: code-review\n---\n")
++        next(item for item in payload["data"] if item["id"] == "code-review")["path"] = str(elsewhere)
++
++        self.assertEqual(["code-review"], missing_required_skills(payload, REQUIRED, self.local_skills))
++
++    def test_reports_duplicate_runtime_id_as_ambiguous(self):
++        payload = self.catalog()
++        duplicate = dict(payload["data"][0])
++        duplicate["path"] = str(self.root / "other-skills" / "ship-change" / "SKILL.md")
++        payload["data"].append(duplicate)
+ 
+-        self.assertEqual(["code-review"], missing_required_skills(payload, REQUIRED))
++        self.assertEqual(["ship-change"], missing_required_skills(payload, REQUIRED, self.local_skills))
+ 
+     def test_rejects_invalid_catalog_shape(self):
+         with self.assertRaises(ValueError):
+-            missing_required_skills({"skills": []}, REQUIRED)
++            missing_required_skills({"skills": []}, REQUIRED, self.local_skills)
+ 
+ 
+ if __name__ == "__main__":
