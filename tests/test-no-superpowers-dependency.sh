@@ -113,7 +113,11 @@ def remove_trailing_commas(source):
 
 
 config = json.loads(remove_trailing_commas(remove_comments(Path(sys.argv[1]).read_text())))
-servers = config.get("mcp", {}).get("servers", {})
+if not isinstance(config, dict) or not isinstance(config.get("mcp"), dict):
+    raise SystemExit("mcp must be an object")
+servers = config["mcp"].get("servers")
+if not isinstance(servers, dict):
+    raise SystemExit("mcp.servers must be an object")
 missing = {"context7", "codegraph"} - set(servers)
 if missing:
     raise SystemExit("missing mcp.servers declarations: " + ", ".join(sorted(missing)))
