@@ -28,7 +28,8 @@
   // `superpowers` en npm es otro paquete (0.0.2) que no es este. La única
   // fuente correcta es la de git.
   "plugins": [
-    "superpowers@git+https://github.com/obra/superpowers.git"
+    "superpowers@git+https://github.com/obra/superpowers.git",
+    "@openchamber/opencode-claude@1.4.1"
   ],
 
   // ----------------------------------------------------------------- skills
