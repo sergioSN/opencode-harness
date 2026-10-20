@@ -34,11 +34,17 @@ done
 
 grep -Fq '@openchamber/opencode-claude@1.4.1' "$REPO_DIR/opencode.jsonc" \
   || fail 'the OpenChamber plugin was removed from opencode.jsonc'
-for mcp_id in context7 codegraph; do
-  grep -Fq "\"$mcp_id\"" "$REPO_DIR/opencode.jsonc" \
-    || fail "the $mcp_id MCP server was removed from opencode.jsonc"
-done
-grep -Eq '^LINKED=\([^)]*skills[^)]*\)' "$REPO_DIR/scripts/link.sh" \
+if ! awk '
+  /^[[:space:]]*"mcp"[[:space:]]*:/ { in_mcp = 1 }
+  in_mcp && /^[[:space:]]*"servers"[[:space:]]*:/ { in_servers = 1; next }
+  in_servers && /^    }/ { in_servers = 0; in_mcp = 0 }
+  in_servers && /^[[:space:]]*"context7"[[:space:]]*:/ { context7 = 1 }
+  in_servers && /^[[:space:]]*"codegraph"[[:space:]]*:/ { codegraph = 1 }
+  END { exit !(context7 && codegraph) }
+' "$REPO_DIR/opencode.jsonc"; then
+  fail 'context7 and codegraph must both remain under mcp.servers'
+fi
+grep -Eq '^LINKED=\(opencode.jsonc AGENTS.md agents skills commands\)$' "$REPO_DIR/scripts/link.sh" \
   || fail 'the global linker no longer links the local skills directory'
 
 for skill_id in ship-change tdd diagnosing-bugs code-review codebase-design verification; do
