@@ -279,7 +279,7 @@ echo
 say "consultando el catálogo de skills de OpenCode para $REPO_DIR..."
 if skills_out="$(opencode api skill.list \
     --param "location[directory]=$REPO_DIR" 2>&1 \
-    | python3 "$REPO_DIR/scripts/check_skills.py" "${REQUIRED_SKILLS[@]}" 2>&1)"; then
+    | python3 "$REPO_DIR/scripts/check_skills.py" "$OC_DIR/skills" "${REQUIRED_SKILLS[@]}" 2>&1)"; then
   ok "$skills_out"
 else
   bad "$skills_out"

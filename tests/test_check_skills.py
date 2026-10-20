@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -13,19 +14,51 @@ REQUIRED = ["ship-change", "tdd", "diagnosing-bugs", "code-review", "codebase-de
 
 
 class MissingRequiredSkillsTests(unittest.TestCase):
-    def test_complete_runtime_catalog_has_no_missing_skills(self):
-        payload = {"data": [{"id": skill_id} for skill_id in REQUIRED]}
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.local_skills = self.root / "local-skills"
+        for skill_id in REQUIRED:
+            skill_dir = self.local_skills / skill_id
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text("---\nname: %s\n---\n" % skill_id)
 
-        self.assertEqual([], missing_required_skills(payload, REQUIRED))
+    def catalog(self):
+        return {"data": [
+            {"id": skill_id, "path": str(self.local_skills / skill_id / "SKILL.md")}
+            for skill_id in REQUIRED
+        ]}
+
+    def test_complete_runtime_catalog_has_no_missing_skills(self):
+        self.assertEqual([], missing_required_skills(self.catalog(), REQUIRED, self.local_skills))
 
     def test_reports_required_ids_missing_from_runtime(self):
-        payload = {"data": [{"id": skill_id} for skill_id in REQUIRED if skill_id != "code-review"]}
+        payload = self.catalog()
+        payload["data"] = [item for item in payload["data"] if item["id"] != "code-review"]
 
-        self.assertEqual(["code-review"], missing_required_skills(payload, REQUIRED))
+        self.assertEqual(["code-review"], missing_required_skills(payload, REQUIRED, self.local_skills))
+
+    def test_reports_local_skill_shadowed_by_another_catalog(self):
+        payload = self.catalog()
+        elsewhere = self.root / "other-skills" / "code-review" / "SKILL.md"
+        elsewhere.parent.mkdir(parents=True)
+        elsewhere.write_text("---\nname: code-review\n---\n")
+        next(item for item in payload["data"] if item["id"] == "code-review")["path"] = str(elsewhere)
+
+        self.assertEqual(["code-review"], missing_required_skills(payload, REQUIRED, self.local_skills))
+
+    def test_reports_duplicate_runtime_id_as_ambiguous(self):
+        payload = self.catalog()
+        duplicate = dict(payload["data"][0])
+        duplicate["path"] = str(self.root / "other-skills" / "ship-change" / "SKILL.md")
+        payload["data"].append(duplicate)
+
+        self.assertEqual(["ship-change"], missing_required_skills(payload, REQUIRED, self.local_skills))
 
     def test_rejects_invalid_catalog_shape(self):
         with self.assertRaises(ValueError):
-            missing_required_skills({"skills": []}, REQUIRED)
+            missing_required_skills({"skills": []}, REQUIRED, self.local_skills)
 
 
 if __name__ == "__main__":

@@ -6,8 +6,8 @@ Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-
 Task 2: complete (commits b78ae28..ead78ae, tests: SDD contract + local skill catalog + link regression → PASS)
 Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit-example.sh` → PASS)
 Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
-Task 5: complete (commits ad5436b..d3b3caf, tests: runtime catalog parser + dependency check + `make check` → PASS)
-Task 6: complete (commits d3b3caf..7e00dd9, tests: optional docs + dependency check → PASS)
+Task 5: complete (commit d3b3caf plus source-precedence follow-up, tests: parser 5/5 + dependency check + `make check` → PASS)
+Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PASS)
 
 ## Pre-flight
 
@@ -73,10 +73,13 @@ Task 6: complete (commits d3b3caf..7e00dd9, tests: optional docs + dependency ch
 - Initial `make check` after a service restart briefly missed `developer` in its second catalog query; after waiting four seconds, the direct catalog had `developer` and the full check passed. This matches the documented service warm-up race; no code change was made for it.
 - `bash tests/test-optional-skills-docs.sh` → RED before doc changes; PASS after README/NOTAS links, optional wording, UI scope and local-fallback note were added.
 - Final pre-commit suite: `test-local-skill-catalog.sh`, `test-sdd-contract.sh`, `test-no-superpowers-dependency.sh`, `test-agent-commit-example.sh`, `test-link.sh`, `make -n setup`, `make check`, Bash syntax, and `git diff --check` → all passed.
-- Final reviewer on `d51c2d0..d3b3caf` → clean on Standards and Spec, no minors; tests were verified separately above.
+- Final reviewer on `d51c2d0..ffcdd84` found one Important Spec issue: runtime catalog validation did not reject a same-ID skill from another source. Fixed by comparing each resolved catalog path with the expected repo-local `SKILL.md`; the shadowing regression test and parser suite pass.
 - `bash tests/test-optional-skills-docs.sh` → RED before docs edits: missing optional catalog links, optional status, fallback statement, architecture-skill mention, and Impeccable UI scope.
 - `bash tests/test-optional-skills-docs.sh` → PASS after README/NOTAS updates; `tests/test-no-superpowers-dependency.sh` also passes, confirming no optional runtime dependency was added.
-- Task 6 commit `7e00dd9` documents the optional companion catalogs; the full final gate and feature-range review follow.
+- Reviewer recheck on `d51c2d0..ffcdd84` found that the API parser checked IDs but not source paths; a same-ID skill from another catalog could shadow the local copy.
+- TDD for the review fix: the shadow-source regression test failed because the parser did not accept an expected local directory; after path validation, parser tests pass 5/5.
+- `tests/test_check_skills.py` after the review fix → 5/5 PASS; `make check` resolves each required API path to its corresponding repo-local `SKILL.md` through the global symlink.
+- Task 6 commit `ffcdd84` documents the optional companion catalogs; the feature-range review found an important source-precedence gap, fixed in the follow-up parser commit.
 - Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
 - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
 - `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.
