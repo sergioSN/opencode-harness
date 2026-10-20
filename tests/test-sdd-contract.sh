@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_DIR="${SDD_TEST_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 FILES=(
   "$REPO_DIR/skills/ship-change/SKILL.md"
   "$REPO_DIR/skills/ship-change/references/spec-plan.md"
@@ -42,6 +42,22 @@ for skill_id in tdd diagnosing-bugs verification code-review codebase-design; do
   grep -Fq "$skill_id" "$REPO_DIR/skills/ship-change/SKILL.md" \
     || fail "ship-change does not reference local skill $skill_id"
 done
+
+for rule in \
+  'Todo hallazgo diferido tiene destino' \
+  'Revisa hazards al empezar cada tarea' \
+  'Un doc que contradice al' \
+  'Un test que nunca falló' \
+  'afirmaciones de tamaño o rendimiento' \
+  'escalaciones de producto tienen sección propia'; do
+  grep -Fq "$rule" "$REPO_DIR/skills/ship-change/SKILL.md" \
+    || fail "ship-change is missing leakage-prevention rule: $rule"
+done
+
+grep -Fq 'nunca `git add -A`' "$REPO_DIR/skills/ship-change/references/brief.md" \
+  || fail 'task brief does not forbid staging the entire working tree'
+grep -Fq 'rutas de `Files`' "$REPO_DIR/skills/ship-change/references/brief.md" \
+  || fail 'task brief does not limit staging to its Files list'
 
 grep -Fq 'ship-change' "$REPO_DIR/agents/developer.md" \
   || fail 'developer does not route large changes to ship-change'

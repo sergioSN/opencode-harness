@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_DIR="${DEPENDENCY_TEST_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 operational_files=(
   Makefile
   opencode.jsonc
   scripts/check.sh
+  scripts/link.sh
   README.md
   NOTAS.md
   AGENTS.md
@@ -33,6 +34,12 @@ done
 
 grep -Fq '@openchamber/opencode-claude@1.4.1' "$REPO_DIR/opencode.jsonc" \
   || fail 'the OpenChamber plugin was removed from opencode.jsonc'
+for mcp_id in context7 codegraph; do
+  grep -Fq "\"$mcp_id\"" "$REPO_DIR/opencode.jsonc" \
+    || fail "the $mcp_id MCP server was removed from opencode.jsonc"
+done
+grep -Eq '^LINKED=\([^)]*skills[^)]*\)' "$REPO_DIR/scripts/link.sh" \
+  || fail 'the global linker no longer links the local skills directory'
 
 for skill_id in ship-change tdd diagnosing-bugs code-review codebase-design verification; do
   grep -Fq "$skill_id" "$REPO_DIR/scripts/check.sh" \
