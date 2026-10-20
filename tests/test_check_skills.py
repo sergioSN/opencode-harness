@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+sys.path.insert(0, os.environ.get(
+    "CHECK_SKILLS_DIR",
+    str(Path(__file__).resolve().parents[1] / "scripts"),
+))
 
 from check_skills import missing_required_skills
 
@@ -59,6 +63,18 @@ class MissingRequiredSkillsTests(unittest.TestCase):
     def test_rejects_invalid_catalog_shape(self):
         with self.assertRaises(ValueError):
             missing_required_skills({"skills": []}, REQUIRED, self.local_skills)
+
+    def test_rejects_malformed_catalog_entry_even_when_required_ids_exist(self):
+        malformed_entries = [
+            {"name": "skill without an ID", "path": "/external/SKILL.md"},
+            {"id": "external-skill"},
+        ]
+        for malformed in malformed_entries:
+            with self.subTest(malformed=malformed):
+                payload = self.catalog()
+                payload["data"].append(malformed)
+                with self.assertRaises(ValueError):
+                    missing_required_skills(payload, REQUIRED, self.local_skills)
 
 
 if __name__ == "__main__":

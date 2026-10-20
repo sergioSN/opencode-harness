@@ -13,8 +13,13 @@ def missing_required_skills(payload, required, expected_skill_dir):
 
     by_id = {}
     for item in payload["data"]:
-        if isinstance(item, dict) and isinstance(item.get("id"), str):
-            by_id.setdefault(item["id"], []).append(item)
+        if (not isinstance(item, dict)
+                or not isinstance(item.get("id"), str)
+                or not item["id"]
+                or not isinstance(item.get("path"), str)
+                or not item["path"]):
+            raise ValueError("cada entrada del catálogo debe incluir `id` y `path`")
+        by_id.setdefault(item["id"], []).append(item)
 
     expected_root = Path(expected_skill_dir).resolve()
     problems = []

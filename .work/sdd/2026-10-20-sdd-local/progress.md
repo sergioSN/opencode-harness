@@ -8,6 +8,7 @@ Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit
 Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
 Task 5: complete (commit d3b3caf plus source-precedence follow-up, tests: parser 5/5 + dependency check + `make check` → PASS)
 Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PASS)
+Task 7: in progress
 
 ## Pre-flight
 
@@ -79,6 +80,7 @@ Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PA
 - Reviewer recheck on `d51c2d0..ffcdd84` found that the API parser checked IDs but not source paths; a same-ID skill from another catalog could shadow the local copy.
 - TDD for the review fix: the shadow-source regression test failed because the parser did not accept an expected local directory; after path validation, parser tests pass 5/5.
 - `tests/test_check_skills.py` after the review fix → 5/5 PASS; `make check` resolves each required API path to its corresponding repo-local `SKILL.md` through the global symlink.
+- Task 7 malformed-entry test against the committed pre-fix parser → RED (`ValueError not raised`); updated parser → 6/6 PASS.
 - Task 6 commit `ffcdd84` documents the optional companion catalogs; the feature-range review found an important source-precedence gap, fixed in the follow-up parser commit.
 - Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
 - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
