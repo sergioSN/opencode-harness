@@ -1,6 +1,6 @@
 # Task brief — formato
 
-Un brief por tarea, en `.superpowers/sdd/<YYYY-MM-DD-slug>/task-N-brief.md`.
+Un brief por tarea, en `.work/sdd/<YYYY-MM-DD-slug>/task-N-brief.md`.
 El implementador (tú o un subagent) lo ejecuta **sin volver a preguntar nada**.
 
 La regla que lo gobierna: **el brief no puede contener una decisión abierta.** Si
@@ -32,12 +32,7 @@ no en prosa.
 - [ ] 4. Implementar el módulo
 - [ ] 5. Ejecutar el gate y comprobar que pasa
 - [ ] 6. Actualizar `@linked` + `docs/index.md`
-- [ ] 7. Commit
-
-```bash
-git add -A
-git commit -m "feat(scope): qué hace, en una línea"
-```
+- [ ] 7. Commit: añade sólo las rutas de `Files` (nunca `git add -A`); usa Conventional Commits y escribe el mensaje en un fichero para ejecutar `git commit -F`.
 
 **Lo que esta tarea NO autoriza:**
 - Investigar proveedores, comparar precios: sí. Contratar uno: no.

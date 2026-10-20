@@ -1,6 +1,6 @@
 # Ledger (`progress.md`) — formato y disciplina
 
-`progress.md`, en `.superpowers/sdd/<YYYY-MM-DD-slug>/`. Es el estado del
+`progress.md`, en `.work/sdd/<YYYY-MM-DD-slug>/`. Es el estado del
 proyecto para quien llegue en frío: dentro de seis meses, tú.
 
 No es un diario. Es la respuesta a tres preguntas: **qué está hecho, qué se
@@ -9,7 +9,7 @@ aplazó, y qué está roto a medias.**
 ## Estructura
 
 ````markdown
-# SDD ledger — plan: docs/superpowers/plans/2026-10-05-ejemplo-f2.md
+# SDD ledger — plan: docs/plans/2026-10-05-ejemplo-f2.md
 
 ## Task status
 

@@ -10,7 +10,7 @@ en el spec, y en el plan solo la lista ordenada de tareas. Si una decisión
 pendiente acaba en el plan de una tanda, cuando releas el spec de la fase no
 estará.
 
-## Spec — `docs/superpowers/specs/YYYY-MM-DD-<slug>-design.md`
+## Spec — `docs/specs/YYYY-MM-DD-<slug>-design.md`
 
 ```markdown
 # <Qué cambia, en una frase>
@@ -69,7 +69,7 @@ Las **decisiones descartadas** son la sección que más valor da y la que más s
 salta. Es lo único que evita que dentro de tres meses alguien proponga lo mismo
 que ya rechazaste.
 
-## Plan — `docs/superpowers/plans/YYYY-MM-DD-<slug>-plan.md`
+## Plan — `docs/plans/YYYY-MM-DD-<slug>-plan.md`
 
 El plan es la descomposición en tareas. Su trabajo es dejar cada tarea
 **verificable por separado**.
@@ -77,7 +77,7 @@ El plan es la descomposición en tareas. Su trabajo es dejar cada tarea
 ```markdown
 # Plan: <slug>
 
-Spec: docs/superpowers/specs/YYYY-MM-DD-<slug>-design.md
+Spec: docs/specs/YYYY-MM-DD-<slug>-design.md
 
 ## Orden de tareas
 | # | Qué hace | Depende de | Deja verde |

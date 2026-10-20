@@ -2,8 +2,8 @@
 
 ## Task status
 
-Task 1: in progress — catalog test has passed after adding/adapting the selected local skills.
-Task 2: pending
+Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-catalog.sh` → PASS)
+Task 2: in progress
 Task 3: pending
 
 ## Pre-flight
@@ -45,3 +45,9 @@ Task 3: pending
 - Adapted `skills/tdd/SKILL.md` → pressure scenario completed: the agent required a test that fails for the reported behavior and preserved the existing uncommitted work instead of resetting the tree.
 - Adapted `skills/code-review/SKILL.md` → pressure scenario completed: the agent proceeded without tracker setup and reported separate Standards/Spec results with a verdict.
 - `bash tests/test-local-skill-catalog.sh` → PASS (unique local skill IDs, discoverable descriptions, TDD/review contracts, and MIT notice).
+- `skills/ship-change/SKILL.md` baseline → red: it prescribed vendor-named artifact paths and five external skill IDs.
+- `bash tests/test-sdd-contract.sh` → RED as expected on old paths and IDs; after rewiring, PASS with the local IDs and neutral artifact paths.
+- `bash -n tests/test-sdd-contract.sh`, `git diff --check`, and the legacy-reference scan over SDD consumers → PASS; no stale paths or external skill IDs remain in those entry points.
+- Task 2 pressure scenario with the local `ship-change` skill → PASS: the agent selected `docs/specs/`, `docs/plans/`, `.work/sdd/`, local helper IDs, and the developer/reviewer agents.
+- `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
+- `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.
