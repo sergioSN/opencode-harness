@@ -126,7 +126,10 @@ for n in "${LINKED[@]}"; do
       continue
     fi
     bak="$dst.backup-$(date +%Y%m%d%H%M%S)"
-    cp -a "$dst" "$bak" 2>/dev/null || true
+    if ! cp -a "$dst" "$bak" 2>/dev/null; then
+      bad "$n no se pudo guardar la copia de seguridad: $bak"
+      exit 1
+    fi
     rm -rf "$dst"
     ok "$n  copiado a $(basename "$bak") y sustituido"
   fi
