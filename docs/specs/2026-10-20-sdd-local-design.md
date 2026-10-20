@@ -15,6 +15,8 @@ Eliminar la dependencia operativa de Superpowers y mantener un SDD completo, pro
 - **Sí:** conservar las reglas existentes contra hallazgos diferidos sin destino, hazards, contradicciones con `AGENTS.md`, tests que no fallaron primero, afirmaciones sin evidencia y escalaciones de producto perdidas.
 - **Sí:** retirar la instalación/configuración de Superpowers y sustituir sus referencias por skills locales.
 - **Sí:** usar como material de partida, adaptado y no como dependencia de ejecución, prácticas de TDD, diagnóstico de bugs, code review y diseño de arquitectura de Matt Pocock.
+- **Sí:** documentar Impeccable y el catálogo de Matt Pocock como complementos opcionales para usuarios que ya los tengan o quieran consultarlos; Impeccable se recomienda para trabajo de UI y el material de Matt complementa el catálogo local.
+- **No:** hacer que las skills externas sean requisitos de `make setup`, `make check` o `/ship`; el flujo SDD debe seguir funcionando con las skills versionadas aquí.
 - **Sí:** tratar el `skills/tdd/` local sin seguimiento como material de partida para TDD; revisar y adaptar su contenido, no sobrescribirlo a ciegas.
 - **No:** importar el catálogo completo de Matt Pocock ni su setup de issue tracker, `to-spec` o `implement-spec` sin adaptación.
 - **No:** borrar automáticamente una instalación existente en `~/.local/share/superpowers`.
@@ -62,6 +64,7 @@ La eliminación sólo afecta a la dependencia del repo: no ejecutará desinstala
 5. Specs y planes nuevos usan `docs/specs/` y `docs/plans/`; el estado de tareas usa `.work/sdd/`.
 6. La documentación y ejemplos no enseñan rutas ni comandos operativos obsoletos de Superpowers.
 7. La instalación local preexistente y los skills sin seguimiento quedan intactos.
+8. README y notas distinguen skills propias requeridas de catálogos externos opcionales, con enlaces y alcance; ninguna verificación o setup depende de estos catálogos.
 
 ## Verificación prevista
 

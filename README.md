@@ -74,6 +74,24 @@ descubre los tests leyendo tu `AGENTS.md` y tu `Makefile`, y dice de dónde los
 ha sacado. Lo específico se queda en el `AGENTS.md` de cada repo, que es la
 fuente de verdad del proyecto.
 
+## Skills opcionales para otros proyectos
+
+El flujo de este repo es autónomo: `make setup`, `make check` y `/ship` usan las
+skills locales incluidas aquí. No hace falta instalar catálogos externos para
+desarrollar con el arnés.
+
+Si ya usas otros catálogos, pueden complementar el flujo cuando una tarea lo
+requiera:
+
+| Catálogo | Cuándo puede ayudar |
+|---|---|
+| [Matt Pocock — Skills for Real Engineers](https://github.com/mattpocock/skills) | Skills adicionales como `improve-codebase-architecture`, `triage` o `retro`. Este repo ya incluye adaptaciones locales de TDD, diagnóstico, diseño de módulos, review y verificación. |
+| [Impeccable](https://github.com/pbakaus/impeccable) | Diseño, crítica y auditoría de interfaces en proyectos con UI. Este arnés no tiene una interfaz de producto propia. |
+
+Son recomendaciones opcionales, no dependencias: no se instalan ni se exigen
+en `make setup` o `make check`, y el SDD local funciona aunque no estén
+disponibles.
+
 ## Si algo falla
 
 | Síntoma | Causa |
@@ -98,7 +116,7 @@ wsl -d Ubuntu -e tail -n 30 /tmp/opencode-serve/4096.log
 
 ## Notas
 
-Ocho trampas de opencode que este repo esquiva, con el porqué de cada una, en
+Ocho reglas operativas de opencode que este repo sigue, con el porqué de cada una, en
 [NOTAS.md](NOTAS.md). La que más cuesta: `opencode debug agents` y compañía no
 leen el disco, preguntan al service en background, así que pueden mentir aunque
 todo esté bien en el fichero.

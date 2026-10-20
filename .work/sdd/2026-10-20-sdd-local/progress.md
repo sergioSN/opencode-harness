@@ -6,7 +6,8 @@ Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-
 Task 2: complete (commits b78ae28..ead78ae, tests: SDD contract + local skill catalog + link regression → PASS)
 Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit-example.sh` → PASS)
 Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
-Task 5: in progress
+Task 5: complete (commits ad5436b..d3b3caf, tests: runtime catalog parser + dependency check + `make check` → PASS)
+Task 6: complete (commits d3b3caf..7e00dd9, tests: optional docs + dependency check → PASS)
 
 ## Pre-flight
 
@@ -28,6 +29,7 @@ Task 5: in progress
 - Ruling: Fix the two Make recipe indentation errors found by `make -n setup` before accepting the dependency-removal test — the recipes had spaces instead of tabs — cost if wrong: setup would stop at parse time.
 - Ruling: Keep the earlier user-approved model/plugin commits on their existing branch; review this SDD feature from `d51c2d0` — those commits predate and are separate from the approved SDD spec — cost if wrong: a future PR from this branch to `main` still includes that earlier history.
 - Ruling: Add an API-backed runtime skill check to `make check` — review found static file checks did not prove OpenCode's effective catalog — cost if wrong: `make check` depends on the documented V2 `/api/skill` route.
+- Ruling: Document Impeccable and Matt Pocock skills as optional companions, not setup requirements — user requested references for existing installations while keeping the repo usable for newcomers — cost if wrong: users may overestimate how much the local workflow relies on these external catalogs.
 
 ## Hazards abiertos
 
@@ -64,11 +66,17 @@ Task 5: in progress
 - `bash tests/test-no-superpowers-dependency.sh`, `make -n setup`, `bash -n scripts/check.sh`, `bash -n tests/test-no-superpowers-dependency.sh`, and `git diff --check` → PASS after dependency removal.
 - `make check` → PASS: config parsed, agents and MCPs loaded, six required local skills verified, and all harness checks succeeded.
 - `python3 tests/test_check_skills.py` → 3/3 PASS; `tests/test-no-superpowers-dependency.sh` → PASS with the runtime API assertion; `make check` → PASS and reports all six required IDs from OpenCode's catalog.
+- Task 5 final suite after commit: local-skill, SDD-contract, dependency, agent-example, and link tests passed; parser tests 3/3; `make -n setup`, syntax checks, and `make check` passed.
 - `opencode api skill.list --param 'location[directory]=/home/ubuntu/projects/opencode-harness'` → returned all six required IDs from `/home/ubuntu/.config/opencode/skills`, the linked repo directory.
 - Loaded `ship-change`, `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification` via the skill tool after removal of the external skill source → all six resolved from `~/.config/opencode/skills`.
-- Review feedback on `origin/main..HEAD`: prior user-approved model/plugin commits were outside this SDD spec; the feature review is therefore anchored at `d51c2d0`. Runtime discovery lacked regression coverage; the API parser test and `make check` integration now cover it.
+- Initial review on `origin/main..HEAD` included prior user-approved model/plugin commits outside this SDD spec and found no automated runtime-discovery check. The SDD review range was narrowed to `d51c2d0`; the runtime finding was fixed in Task 5.
 - Initial `make check` after a service restart briefly missed `developer` in its second catalog query; after waiting four seconds, the direct catalog had `developer` and the full check passed. This matches the documented service warm-up race; no code change was made for it.
-- `opencode api skill.list --param 'location[directory]=/home/ubuntu/projects/opencode-harness'` → returned the six required IDs from the linked global skill directory.
+- `bash tests/test-optional-skills-docs.sh` → RED before doc changes; PASS after README/NOTAS links, optional wording, UI scope and local-fallback note were added.
 - Final pre-commit suite: `test-local-skill-catalog.sh`, `test-sdd-contract.sh`, `test-no-superpowers-dependency.sh`, `test-agent-commit-example.sh`, `test-link.sh`, `make -n setup`, `make check`, Bash syntax, and `git diff --check` → all passed.
+- Final reviewer on `d51c2d0..d3b3caf` → clean on Standards and Spec, no minors; tests were verified separately above.
+- `bash tests/test-optional-skills-docs.sh` → RED before docs edits: missing optional catalog links, optional status, fallback statement, architecture-skill mention, and Impeccable UI scope.
+- `bash tests/test-optional-skills-docs.sh` → PASS after README/NOTAS updates; `tests/test-no-superpowers-dependency.sh` also passes, confirming no optional runtime dependency was added.
+- Task 6 commit `7e00dd9` documents the optional companion catalogs; the full final gate and feature-range review follow.
+- Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
 - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
 - `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.

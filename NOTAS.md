@@ -148,6 +148,16 @@ y un `SKILL.md` con `description`; `scripts/check.sh` verifica los IDs requerido
 Los skills personales adicionales pueden descubrirse desde `~/.agents/skills`,
 pero no se convierten por eso en dependencias de `make setup`.
 
+### Catálogos opcionales
+
+El README recomienda [Matt Pocock](https://github.com/mattpocock/skills) para
+capacidades adicionales (por ejemplo `improve-codebase-architecture`, `triage`
+y `retro`) e [Impeccable](https://github.com/pbakaus/impeccable) para trabajo de
+UI. La recomendación no es un requisito del arnés: `make setup`, `make check` y
+`/ship` funcionan con las skills versionadas localmente. Además, las prácticas
+seleccionadas de Matt Pocock ya están adaptadas como skills locales; no se
+necesita instalar otra copia para completar el flujo SDD.
+
 ### 2. `codegraph install` no entendería la config ni aguantaría el symlink
 
 Dos motivos, y el segundo es el que duele:
