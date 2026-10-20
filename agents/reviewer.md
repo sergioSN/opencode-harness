@@ -1,5 +1,9 @@
 ---
-description: Revisa un rango de commits o un diff en busca de bugs, falta de tests, docs desincronizadas y afirmaciones sin evidencia. Solo lectura — nunca toca un fichero. Úsalo como paso de review del SDD o cuando pidas revisar cambios.
+description: Revisa un rango de commits o un diff en busca de bugs, falta de
+  tests, docs desincronizadas y afirmaciones sin evidencia. Solo lectura — nunca
+  toca un fichero. Úsalo como paso de review del SDD o cuando pidas revisar
+  cambios.
+model: opencode-go/gpt-6-luna
 mode: subagent
 permissions:
   - action: edit
@@ -9,7 +13,7 @@ permissions:
     resource: "*"
     effect: deny
   - action: shell
-    resource: "git *"
+    resource: git *
     effect: allow
 ---
 

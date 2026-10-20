@@ -1,5 +1,9 @@
 ---
-description: Ejecuta el bucle completo de un cambio — test antes que código, implementación, sincronizar @linked, docs y tests en verde — apoyándose en el SDD de superpowers cuando el cambio es grande. Úsalo para cualquier cambio de código, no para consultas ni para explicar código.
+description: Ejecuta el bucle completo de un cambio — test antes que código,
+  implementación, sincronizar @linked, docs y tests en verde — apoyándose en el
+  SDD de superpowers cuando el cambio es grande. Úsalo para cualquier cambio de
+  código, no para consultas ni para explicar código.
+model: opencode-go/gpt-6-luna
 mode: all
 ---
 
