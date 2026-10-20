@@ -273,6 +273,19 @@ for skill_id in "${REQUIRED_SKILLS[@]}"; do
   fi
 done
 
+# File presence is not enough: OpenCode's effective catalog must discover each
+# skill from the linked global directory, with the current repo as its location.
+echo
+say "consultando el catálogo de skills de OpenCode para $REPO_DIR..."
+if skills_out="$(opencode api skill.list \
+    --param "location[directory]=$REPO_DIR" 2>&1 \
+    | python3 "$REPO_DIR/scripts/check_skills.py" "${REQUIRED_SKILLS[@]}" 2>&1)"; then
+  ok "$skills_out"
+else
+  bad "$skills_out"
+  fallar
+fi
+
 # --------------------------------------------------------------- resumen
 h "Resumen"
 if [ "$fallos" -eq 0 ]; then

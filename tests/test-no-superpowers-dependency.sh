@@ -38,6 +38,10 @@ for skill_id in ship-change tdd diagnosing-bugs code-review codebase-design veri
   grep -Fq "$skill_id" "$REPO_DIR/scripts/check.sh" \
     || fail "check.sh does not validate local skill $skill_id"
 done
+grep -Fq 'opencode api skill.list' "$REPO_DIR/scripts/check.sh" \
+  || fail "check.sh does not verify OpenCode's effective skill catalog"
+grep -Fq 'location[directory]' "$REPO_DIR/scripts/check.sh" \
+  || fail 'check.sh does not scope skill discovery to this repo'
 
 if ! make_plan="$(cd "$REPO_DIR" && make -n setup 2>&1)"; then
   fail "make -n setup failed: $make_plan"
