@@ -4,7 +4,7 @@
 - Modify: `scripts/check_skills.py`
 - Test: `tests/test_check_skills.py`
 
-**Contract:** Reject any catalog `data` entry without a nonempty string `id` and `path`, even when all required valid IDs are present. Keep the existing missing-ID, duplicate-ID, and local-source checks.
+**Contract:** Reject any catalog `data` entry with a missing, empty, or non-string `id` or `path`, even when all required valid IDs are present. Keep the existing missing-ID, duplicate-ID, and local-source checks.
 
 **Does not authorize:** changing required skill IDs, touching optional skills, or changing OpenCode configuration.
 

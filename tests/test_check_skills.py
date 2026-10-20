@@ -68,6 +68,10 @@ class MissingRequiredSkillsTests(unittest.TestCase):
         malformed_entries = [
             {"name": "skill without an ID", "path": "/external/SKILL.md"},
             {"id": "external-skill"},
+            {"id": "", "path": "/external/SKILL.md"},
+            {"id": 123, "path": "/external/SKILL.md"},
+            {"id": "external-skill", "path": ""},
+            {"id": "external-skill", "path": 123},
         ]
         for malformed in malformed_entries:
             with self.subTest(malformed=malformed):
