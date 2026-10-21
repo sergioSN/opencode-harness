@@ -63,6 +63,27 @@ prueba, y es más fiable que la intuición.
 imperativo y sin punto. Si el *porqué* no cabe en una línea, explícalo en el
 cuerpo, también en inglés.
 
+El `AGENTS.md` de cada proyecto define lo específico de ese repo: comandos de
+test, reglas de negocio y archivos que no se deben tocar. Puede añadir
+restricciones, pero no rebajar el mínimo global de commits en inglés y ramas
+prefijadas por tipo de cambio.
+
+### Branches: prefijo por tipo de cambio
+
+Nombra cada rama nueva como `<type>/<short-kebab-case>`. El prefijo describe el
+tipo de cambio, no el producto, equipo ni componente:
+
+- `feature/`: funcionalidad o capacidad nueva.
+- `fix/`: corrige bugs; `bugfix/` es alias aceptado, pero se prefiere `fix/` para nuevas ramas.
+- `hotfix/`: corrección urgente y muy acotada; no es sinónimo de un fix pequeño.
+- Para otros trabajos, usa el tipo correspondiente: `docs/`, `style/`, `refactor/`,
+  `perf/`, `test/`, `build/`, `chore/` o `revert/`.
+
+Pon el producto o área después del tipo. Por ejemplo, la nueva funcionalidad de
+aprendizaje infantil va en `feature/openchamber-child-learning-ux`, no en
+`openchamber/child-learning-ux`. Una corrección de esa área sería
+`fix/openchamber-drawing-controls`; una corrección urgente, `hotfix/session-auth-expired`.
+
 **El diff se lee entero antes de commitear**, y el `AGENTS.md` no se toca en un
 commit «de paso»: va en su propio.
 
