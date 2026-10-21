@@ -105,6 +105,27 @@ base más reciente para no diseñar trabajo sobre código obsoleto:
 desde `master`, aunque exista `develop`. Si esa base no puede identificarse o
 actualizarse con seguridad, pregunta antes de crear la rama o redactar el plan.
 
+### Cambios locales y trabajo sin commit
+
+Antes de editar, registra `git status --short` y separa el estado previo del
+trabajo que empieces ahora. **El origen no se deduce de `git status`.**
+Sin evidencia, no llames los cambios "ajenos" ni "del usuario". Si no has confirmado
+el origen, di "cambios locales previos, de origen no confirmado" y describe sólo
+su estado y rutas.
+
+Trata los cambios previos y los ficheros sin seguimiento fuera del alcance
+confirmado como protegidos. No los sobrescribas, formatees, renombres, elimines,
+guardes en stash, añadas al índice ni incluyas en commits/push salvo que la tarea
+los nombre y el usuario autorice esa acción.
+Añade sólo las rutas autorizadas por la tarea; nunca `git add -A`. Si una
+operación de rama, merge o actualización puede afectar esas rutas, para y
+pregunta antes de continuar.
+
+Un push publica commits; no incluye cambios sin commit ni ficheros sin
+seguimiento. Si el usuario pide «subir todos los cambios» y hay rutas locales sin commit,
+pregunta qué rutas quiere incluir antes de prepararlas. Al informar, di qué quedó
+local y sin publicar, sin atribuir su autoría si no está confirmada.
+
 **El diff se lee entero antes de commitear**, y el `AGENTS.md` no se toca en un
 commit «de paso»: va en su propio.
 
