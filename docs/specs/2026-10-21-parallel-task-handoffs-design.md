@@ -37,7 +37,7 @@ None.
 
 ### Automatic
 
-- `tests/test-sdd-contract.sh` requires all handoff fields, disjoint writer ownership, concise status reporting, and the coordinator rule.
+- `tests/test-sdd-contract.sh` requires all handoff fields, disjoint writer ownership, read-only sharing, concise status/evidence reporting, and the coordinator rule.
 
 ### Human acceptance
 

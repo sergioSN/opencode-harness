@@ -72,10 +72,14 @@ for handoff_field in \
 done
 grep -Fq 'no se solapan' "$REPO_DIR/skills/ship-change/references/brief.md" \
   || fail 'task brief does not require disjoint parallel write paths'
+grep -Fq 'Las rutas compartidas sólo se leen' "$REPO_DIR/skills/ship-change/references/brief.md" \
+  || fail 'task brief does not constrain shared paths to read-only'
 grep -Fq 'Una ficha por agente/entrega' "$REPO_DIR/skills/ship-change/references/brief.md" \
   || fail 'task brief does not distinguish each delegated assignment'
 grep -Fq 'resumen de máximo 10 líneas' "$REPO_DIR/skills/ship-change/references/brief.md" \
   || fail 'task brief does not require a concise agent handoff'
+grep -Fq 'comandos/resultados' "$REPO_DIR/skills/ship-change/references/brief.md" \
+  || fail 'task brief does not require command evidence in the handoff'
 grep -Fq 'done|blocked|partial' "$REPO_DIR/skills/ship-change/references/brief.md" \
   || fail 'task brief does not require a completion status'
 

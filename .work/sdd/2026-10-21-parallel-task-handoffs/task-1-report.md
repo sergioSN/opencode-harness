@@ -6,4 +6,4 @@
 
 **Verification:** `bash tests/test-local-skill-catalog.sh` prints `PASS: required local skills have unique, discoverable definitions`; `bash tests/test-no-superpowers-dependency.sh` prints `PASS: setup and operational docs are self-contained`; `make check` ends with `✓ Todo correcto.` Scoped `git diff --check` and `bash -n tests/test-sdd-contract.sh` pass.
 
-**Review:** pending.
+**Review:** Initial reviewer verdict: **approved with findings**. It found two missing regression assertions (shared read-only paths and command/result evidence); both were added. The actual contract test passes; a fixture removing both clauses fails with the two expected diagnostics. Follow-up review pending. Reviewers do not run tests.
