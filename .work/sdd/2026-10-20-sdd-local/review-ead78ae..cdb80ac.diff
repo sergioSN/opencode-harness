@@ -1,0 +1,136 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/progress.md b/.work/sdd/2026-10-20-sdd-local/progress.md
+index b67c255..fa8f128 100644
+--- a/.work/sdd/2026-10-20-sdd-local/progress.md
++++ b/.work/sdd/2026-10-20-sdd-local/progress.md
+@@ -3,8 +3,9 @@
+ ## Task status
+ 
+ Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-catalog.sh` → PASS)
+-Task 2: in progress
+-Task 3: pending
++Task 2: complete (commits b78ae28..ead78ae, tests: SDD contract + local skill catalog + link regression → PASS)
++Task 3: in progress
++Task 4: in progress
+ 
+ ## Pre-flight
+ 
+@@ -20,6 +21,7 @@ Task 3: pending
+ - Ruling: Adapt TDD seam approval to require agreement during architectural design, not separate approval before every bounded test — the approved plan keeps bounded fixes moving under red/green — cost if wrong: a test seam may be chosen without enough discussion on a complex change.
+ - Ruling: Fold design discovery/spec into `ship-change` instead of creating `skills/designing-changes/` — the fresh baseline already asked the blocking permissions question and deferred coding under demo/manager pressure — cost if wrong: standalone design work may later benefit from a separate reusable skill.
+ - Ruling: Commit the selected helper skills as one Task 1 catalog change after individually pressure-testing each skill — their IDs and shared contract are verified together by one catalog test — cost if wrong: a skill-specific regression is less isolated in history, though its file remains independently revertible.
++- Ruling: Split the `AGENTS.md` example cleanup into its own task/commit — the repository's global instructions prohibit changing AGENTS.md as a drive-by — cost if wrong: one extra atomic commit and task.
+ 
+ ## Hazards abiertos
+ 
+@@ -49,5 +51,8 @@ Task 3: pending
+ - `bash tests/test-sdd-contract.sh` → RED as expected on old paths and IDs; after rewiring, PASS with the local IDs and neutral artifact paths.
+ - `bash -n tests/test-sdd-contract.sh`, `git diff --check`, and the legacy-reference scan over SDD consumers → PASS; no stale paths or external skill IDs remain in those entry points.
+ - Task 2 pressure scenario with the local `ship-change` skill → PASS: the agent selected `docs/specs/`, `docs/plans/`, `.work/sdd/`, local helper IDs, and the developer/reviewer agents.
++- `bash tests/test-no-superpowers-dependency.sh` → expected RED: Makefile/config/check script and operational docs still refer to the external package, and `check.sh` lacks the required local skill inventory.
++- `bash tests/test-agent-commit-example.sh` → expected RED: the global commit example still says `chore(deps): sube superpowers...`.
++- `bash tests/test-agent-commit-example.sh` → PASS after replacing that example; `git diff --check` → PASS.
+ - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
+ - `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.
+diff --git a/AGENTS.md b/AGENTS.md
+index 739bb05..4f496e2 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -42,7 +42,7 @@ otro, también es escribir commits**, y ahí no se cargan. Este fichero es el
+ feat(auth): renueva el token antes de que expire
+ fix(db): no traga el error si la migración ya corrió
+ docs(readme): explica por qué el puerto es el 4096
+-chore(deps): sube superpowers a la última
++chore(config): alinea los modelos de los agentes
+ ```
+ 
+ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`,
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+index 10f09a9..5e83a61 100644
+--- a/docs/plans/2026-10-20-sdd-local.md
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -73,36 +73,51 @@
+ - [x] **Step 3: Update the SDD instructions and templates.** Keep the six leakage-prevention rules, per-task verification/review, hazard ownership, escalation section, and one-task/one-commit discipline. Replace external IDs with Task 1 IDs or inline SDD-specific work in `ship-change`.
+ - [x] **Step 4: Run `bash tests/test-sdd-contract.sh`.** Expected: PASS; all consumers and templates agree on the local IDs and exact paths.
+ - [x] **Step 5: Run `git diff --check` and review the SDD references as a whole.** Expected: no stale operational path or missing lifecycle phase.
+-- [ ] **Step 6: Commit** as `refactor(sdd): usa skills y rutas locales`.
++- [x] **Step 6: Commit** as `refactor(sdd): usa skills y rutas locales`.
+ 
+-### Task 3: Remove Superpowers from setup, config, and diagnostics
++### Task 3: Neutralize the dependency example in global instructions
++
++**Files:**
++- Modify: `AGENTS.md`
++- Test: `tests/test-agent-commit-example.sh`
++
++**Interfaces:**
++- Consumes: the project's Conventional Commit examples.
++- Produces: a neutral commit example; Task 4 removes the remaining operational dependency without mixing this file into another commit.
++
++- [x] **Step 1: Write the failing example test.** Assert the global instructions no longer use a Superpowers-specific dependency example and still show a valid conventional config-change example.
++- [x] **Step 2: Run `bash tests/test-agent-commit-example.sh`.** Expected: FAIL on the current `chore(deps): sube superpowers...` example.
++- [x] **Step 3: Replace only that example** with a neutral agent/config example; preserve all other global instructions.
++- [x] **Step 4: Run the example test and `git diff --check`.** Expected: PASS.
++- [ ] **Step 5: Commit** as `docs(agents): neutraliza el ejemplo de dependencia`.
++
++### Task 4: Remove Superpowers from setup, config, and diagnostics
+ 
+ **Files:**
+ - Modify: `opencode.jsonc`
+ - Modify: `Makefile`
+ - Modify: `scripts/check.sh`
+-- Modify: `AGENTS.md`
+ - Modify: `README.md`
+ - Modify: `NOTAS.md`
+ - Modify: `skills/.gitkeep`
+ - Test: `tests/test-no-superpowers-dependency.sh`
+ 
+ **Interfaces:**
+-- Consumes: Task 1 local skill catalog and Task 2 SDD IDs/paths.
+-- Produces: setup and diagnostics that no longer require the Superpowers package, plugin, external path, or skill count.
++- Consumes: Task 1 local skill catalog, Task 2 SDD IDs/paths, and Task 3's neutral global instructions.
++- Produces: setup and diagnostics that no longer require the external package, plugin, path, or skill count.
+ 
+-- [ ] **Step 1: Write the failing dependency-removal test.** Check the operational config, Make targets, setup dependency graph, and check script for Superpowers package/path requirements; assert the OpenChamber plugin remains configured and setup still links the local `skills/` directory.
+-- [ ] **Step 2: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: FAIL on the current plugin, external skill source, Make target, and checks.
+-- [ ] **Step 3: Remove the external dependency.** Delete only the Superpowers plugin/source and installation variables/target; make `setup` independent of it; replace external checks with required local-skill checks; update help and documentation. Do not remove anything from the user's home directory or alter unrelated skills/plugins.
++- [x] **Step 1: Write the failing dependency-removal test.** Check the operational config, Make targets, setup dependency graph, and check script for external package/path requirements; assert the OpenChamber plugin remains configured and setup still links local `skills/`.
++- [x] **Step 2: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: FAIL on the current plugin, external skill source, Make target, and checks.
++- [ ] **Step 3: Remove the external dependency.** Delete only the external plugin/source and installation variables/target; make `setup` independent of it; replace external checks with required local-skill checks; update help and docs. Do not remove anything from the user's home directory or alter unrelated skills/plugins.
+ - [ ] **Step 4: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: PASS; external setup/config checks are absent and local setup remains declared.
+-- [ ] **Step 5: Run `make -n setup`, `bash tests/test-link.sh`, `bash -n scripts/check.sh`, and `git diff --check`.** Expected: setup's printed dependency graph contains no Superpowers install; regression test passes; shell syntax and whitespace checks pass.
+-- [ ] **Step 6: Verify the live OpenCode V2 config and skill catalog.** Confirm `opencode debug config` parses the config, the OpenChamber plugin remains, and each required local skill can be discovered/loaded from the linked global `skills/` directory. Expected: no Superpowers source is needed and all local SDD skills load.
+-- [ ] **Step 7: Run `make check`.** Expected: all harness checks pass without looking for Superpowers or its installed directory.
++- [ ] **Step 5: Run `make -n setup`, `bash tests/test-link.sh`, `bash -n scripts/check.sh`, and `git diff --check`.** Expected: setup's printed dependency graph contains no external skill install; regression test passes; syntax and whitespace checks pass.
++- [ ] **Step 6: Verify the live OpenCode V2 config and skill catalog.** Confirm `opencode debug config` parses the config, the OpenChamber plugin remains, and each required local skill loads from the linked global `skills/` directory.
++- [ ] **Step 7: Run `make check`.** Expected: all harness checks pass without checking for an external skill directory.
+ - [ ] **Step 8: Commit** as `refactor(setup): elimina la dependencia de Superpowers`.
+ 
+ ## Final gate
+ 
+-- [ ] Run all three new shell tests and `tests/test-link.sh`.
++- [ ] Run all four new shell tests and `tests/test-link.sh`.
+ - [ ] Run `bash -n scripts/check.sh` and `git diff --check`.
+ - [ ] Read the full final diff; confirm no edits to unrelated untracked skills and no removal of the user's installed package.
+ - [ ] Run `make check` and verify the local skills in OpenCode V2.
+diff --git a/tests/test-agent-commit-example.sh b/tests/test-agent-commit-example.sh
+new file mode 100644
+index 0000000..160a35b
+--- /dev/null
++++ b/tests/test-agent-commit-example.sh
+@@ -0,0 +1,16 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++agents_file="$REPO_DIR/AGENTS.md"
++
++if grep -qi 'superpowers' "$agents_file"; then
++  printf 'FAIL: AGENTS.md still uses a vendor-specific dependency example\n' >&2
++  exit 1
++fi
++if ! grep -q 'chore(config):' "$agents_file"; then
++  printf 'FAIL: AGENTS.md no longer shows a conventional config example\n' >&2
++  exit 1
++fi
++
++printf 'PASS: AGENTS.md uses a neutral conventional commit example\n'

@@ -15,36 +15,10 @@
   // el doc de migración dice literalmente "Rename `plugin` to `plugins`".
   // `opencode debug config` confirma que V2 lee y conserva esta clave.
   //
-  // ATENCIÓN — superpowers usa la API de plugins de V1:
-  //   · un hook `config` que empuja su carpeta a config.skills.paths
-  //     (en V1 `skills` era un objeto; en V2 es un array plano, así que esa
-  //     escritura ya no registra nada)
-  //   · el hook `experimental.chat.messages.transform`, que inyecta el texto
-  //     de arranque en el primer mensaje
-  // El doc de migración advierte: "V1 plugin implementations do not run in V2".
-  // Se deja la entrada puesta por si tu versión lo carga, pero NO cuentes con
-  // ella: el registro fiable de sus skills es el array `skills` de abajo.
-  //
-  // `superpowers` en npm es otro paquete (0.0.2) que no es este. La única
-  // fuente correcta es la de git.
+  // Las skills locales viven en `skills/`, enlazado a
+  // ~/.config/opencode/skills. OpenCode V2 las descubre automáticamente.
   "plugins": [
-    "superpowers@git+https://github.com/obra/superpowers.git"
-  ],
-
-  // ----------------------------------------------------------------- skills
-  //
-  // V2 descubre skills por descubrimiento (rutas conocidas) y por este array.
-  // El array es la vía que sí funciona en V2, y admite `~/`.
-  //
-  // Superpowers trae sus skills (brainstorming, test-driven-development,
-  // systematic-debugging, writing-plans, using-git-worktrees...). Su plugin de
-  // V1 los registraba, pero como ese hook ya no corre, los apuntamos aquí
-  // directamente. La ruta la instala `make superpowers`; no la escribas a mano.
-  //
-  // Este array tiene la precedencia más alta, así que si el plugin de V1
-  // llegara a registrar los mismos IDs, mandan estas rutas y no hay duplicados.
-  "skills": [
-    "~/.local/share/superpowers/node_modules/superpowers/skills"
+    "@openchamber/opencode-claude@1.4.1"
   ],
 
   // -------------------------------------------------------------------- mcp

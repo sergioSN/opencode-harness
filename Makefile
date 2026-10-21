@@ -1,7 +1,7 @@
 # ============================================================
 #  opencode-harness — el arnés de opencode, y OpenChamber encima
 # ------------------------------------------------------------
-#  make setup        instala todo: enlaces, plugins, CLIs
+#  make setup        enlaza la config, instala CLIs locales y comprueba
 #  make check        estado real de todo el stack
 #  make opencode / opencode-web / openchamber-*   lanzadores
 #
@@ -15,9 +15,6 @@ SHELL := /bin/bash
 REPO        := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 OC_DIR      ?= $(HOME)/.config/opencode
 NPM_PREFIX  ?= $(HOME)/.local
-SP_PREFIX   ?= $(HOME)/.local/share/superpowers
-SP_REPO     := https://github.com/obra/superpowers.git
-SP_PKG      ?= superpowers@git+$(SP_REPO)
 
 # `npm` a secas es el de Hermes y sus globales se van a /usr/local, que es
 # justo el duplicado que hubo que arreglar con openchamber. Con --prefix la
@@ -56,7 +53,7 @@ CHECK_PROJECT = @test -n "$(PROJECT)" || { \
 }
 
 .PHONY: help link unlink check setup doctor compat \
-        superpowers context7 context7-cli codegraph codegraph-snippet \
+        context7 context7-cli codegraph codegraph-snippet \
         opencode opencode-web \
         openchamber-desktop openchamber-web desktop web \
         stop status upgrade clean
@@ -72,7 +69,7 @@ help: ## Muestra esta ayuda
 	  | sort \
 	  | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ""
-	@echo "  make setup   = link + compat + superpowers + codegraph + check"
+	@echo "  make setup   = link + compat + codegraph + check"
 	@echo ""
 	@echo "  PROJECT= es obligatorio en los seis lanzadores."
 	@echo "  Ej:  make opencode-web PROJECT=~/projects/mi-proyecto"
@@ -114,26 +111,6 @@ compat: ## Symlink en la ruta vieja, para los Makefiles que aun no han migrado
 	@echo "  Tus proyectos con OPENCHAMBER_COMMON siguen funcionando."
 	@echo "  Para dejarlo bien: cambia esa variable por $(REPO)"
 	@echo "  y luego borra este symlink."
-
-## ------------------------------------------------------------ plugins
-superpowers: ## Instala superpowers y deja sus skills en el array `skills`
-	@echo "==> superpowers"
-	@echo "    OJO: el paquete \`superpowers\` de npm es otro (0.0.2), no este."
-	@echo "         La fuente real es el repo de git."
-	@mkdir -p $(SP_PREFIX)
-	@npm --prefix $(SP_PREFIX) i --no-fund --no-audit "$(SP_PKG)"
-	@echo ""
-	@echo "    instalado en: $(SP_PREFIX)/node_modules/superpowers"
-	@echo "    skills:"
-	@find $(SP_PREFIX)/node_modules/superpowers/skills -name SKILL.md 2>/dev/null \
-	  | sed 's|.*/skills/||;s|/SKILL.md||' | sort | tr '\n' ' ' | fold -s -w 62 | sed 's/^/      /'
-	@echo ""
-	@echo "    Ya está en el array \`skills\` de opencode.jsonc. Comprueba con:"
-	@echo "      make check"
-	@echo ""
-	@echo "    El plugin de V1 (hooks config + experimental.chat.messages.transform)"
-	@echo "    probablemente no corre en V2; por eso los skills se registran"
-	@echo "    apuntando a la ruta de arriba y no confiando en el hook."
 
 context7: ## Context7: MCP remoto, no hay nada que instalar. Opcional: la CLI
 	@echo "==> context7"
@@ -221,7 +198,7 @@ desktop: openchamber-desktop ## Alias de openchamber-desktop
 web: openchamber-web ## Alias de openchamber-web
 
 ## ------------------------------------------------------------- resto
-setup: link compat superpowers codegraph ## Enlaza e instala todo
+setup: link compat codegraph ## Enlaza e instala lo necesario
 	@$(MAKE) --no-print-directory check
 
 doctor: ## check + lo que ve opencode por su cuenta
@@ -246,10 +223,6 @@ status: ## Lista los servidores de opencode y de OpenChamber en marcha
 
 upgrade: ## Actualiza plugins, opencode y openchamber
 	@opencode plugin update 2>&1 | sed 's/^/   /'
-	@echo ""
-	@echo "    superpowers va por git, así que esto no lo actualiza."
-	@echo "    Para eso: make superpowers   (reinstala desde el repo)"
-	@echo ""
 	@$(UPGRADE_SH) $(UPGRADE_FLAGS)
 
 clean: ## Borra los temporales de este repo

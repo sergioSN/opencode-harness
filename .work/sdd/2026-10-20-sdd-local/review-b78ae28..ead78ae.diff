@@ -1,0 +1,439 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/progress.md b/.work/sdd/2026-10-20-sdd-local/progress.md
+index 8f10be2..b67c255 100644
+--- a/.work/sdd/2026-10-20-sdd-local/progress.md
++++ b/.work/sdd/2026-10-20-sdd-local/progress.md
+@@ -2,8 +2,8 @@
+ 
+ ## Task status
+ 
+-Task 1: in progress — catalog test has passed after adding/adapting the selected local skills.
+-Task 2: pending
++Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-catalog.sh` → PASS)
++Task 2: in progress
+ Task 3: pending
+ 
+ ## Pre-flight
+@@ -45,3 +45,9 @@ Task 3: pending
+ - Adapted `skills/tdd/SKILL.md` → pressure scenario completed: the agent required a test that fails for the reported behavior and preserved the existing uncommitted work instead of resetting the tree.
+ - Adapted `skills/code-review/SKILL.md` → pressure scenario completed: the agent proceeded without tracker setup and reported separate Standards/Spec results with a verdict.
+ - `bash tests/test-local-skill-catalog.sh` → PASS (unique local skill IDs, discoverable descriptions, TDD/review contracts, and MIT notice).
++- `skills/ship-change/SKILL.md` baseline → red: it prescribed vendor-named artifact paths and five external skill IDs.
++- `bash tests/test-sdd-contract.sh` → RED as expected on old paths and IDs; after rewiring, PASS with the local IDs and neutral artifact paths.
++- `bash -n tests/test-sdd-contract.sh`, `git diff --check`, and the legacy-reference scan over SDD consumers → PASS; no stale paths or external skill IDs remain in those entry points.
++- Task 2 pressure scenario with the local `ship-change` skill → PASS: the agent selected `docs/specs/`, `docs/plans/`, `.work/sdd/`, local helper IDs, and the developer/reviewer agents.
++- `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
++- `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.
+diff --git a/agents/developer.md b/agents/developer.md
+index 130c864..8308ef8 100644
+--- a/agents/developer.md
++++ b/agents/developer.md
+@@ -1,7 +1,7 @@
+ ---
+ description: Ejecuta el bucle completo de un cambio — test antes que código,
+   implementación, sincronizar @linked, docs y tests en verde — apoyándose en el
+-  SDD de superpowers cuando el cambio es grande. Úsalo para cualquier cambio de
++  SDD local cuando el cambio es grande. Úsalo para cualquier cambio de
+   código, no para consultas ni para explicar código.
+ model: opencode-go/gpt-6-luna
+ mode: all
+@@ -41,7 +41,7 @@ Escribe el test que falla **antes** de escribir la implementación. Si el
+ proyecto no tiene harness de tests, dilo explícitamente y sigue; pero no
+ digas después "tests en verde" si no los hay.
+ 
+-Si está disponible, carga el skill `test-driven-development`.
++Carga el skill local `tdd`.
+ 
+ ### 2. Implementa
+ 
+@@ -103,7 +103,7 @@ El umbral lo decide el tamaño del cambio, no si te apetece.
+ 
+ ## Verificar antes de decir que has terminado
+ 
+-Carga `verification-before-completion` antes de cualquier afirmación de éxito.
++Carga `verification` antes de cualquier afirmación de éxito.
+ Su regla es simple y no se negocia: **no afirmes que está hecho sin la salida
+ del gate delante de ti.**
+ 
+@@ -113,4 +113,4 @@ del gate delante de ti.**
+ - No tocas la rama de integración. En proyectos con `develop` como rama
+   permanente, jamás la borres ni la recrees, aunque alguien lo proponga.
+ - No amplías el alcance porque «ya que estás aquí». Si ves un problema
+-  colindante, anótalo y dilo; no lo arregles de paso.
+\ No newline at end of file
++  colindante, anótalo y dilo; no lo arregles de paso.
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+index cb324b5..10f09a9 100644
+--- a/docs/plans/2026-10-20-sdd-local.md
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -51,7 +51,7 @@
+ - [x] **Step 3: Add/adapt the local skills.** Use Matt Pocock's selected practices as editable source material, not a runtime dependency; preserve the MIT copyright notice for adapted content. Keep design/spec inside `ship-change`; preserve behavior-focused tests and red/green. Agree on important test seams during design for architectural work, but do not require a separate user approval before every test in a bounded fix. Adapt `code-review` to the existing `reviewer` agent and remove its issue-tracker/setup requirement. Leave `triage` and other unselected skills untouched.
+ - [x] **Step 4: Run `bash tests/test-local-skill-catalog.sh`.** Expected: PASS, one valid local definition per required ID.
+ - [x] **Step 5: Run `git diff --check` and review the selected skill files.** Expected: no whitespace errors; include all supporting files for `tdd` and `code-review`, and leave unrelated untracked skills unchanged.
+-- [ ] **Step 6: Commit** as `feat(skills): añade prácticas locales de ingeniería`.
++- [x] **Step 6: Commit** as `feat(skills): añade prácticas locales de ingeniería`.
+ 
+ ### Task 2: Rewire SDD to local skills and paths
+ 
+@@ -68,11 +68,11 @@
+ - Consumes: Task 1 skill IDs `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification`.
+ - Produces: the local SDD contract and artifact paths consumed by Task 3 and future `/ship` runs.
+ 
+-- [ ] **Step 1: Write the failing SDD contract test.** Assert that the command and developer route large changes to `ship-change`; that the SDD skill names its local helper IDs and preserves scope → spec → plan → tasks → review → ledger → closeout; that templates use `docs/specs/`, `docs/plans/`, and `.work/sdd/` rather than vendor-named paths; and that `.work/sdd/` is not ignored by the repo.
+-- [ ] **Step 2: Run `bash tests/test-sdd-contract.sh`.** Expected: FAIL on the current external skill IDs and `docs/superpowers/` / `.superpowers/sdd/` paths.
+-- [ ] **Step 3: Update the SDD instructions and templates.** Keep the six leakage-prevention rules, per-task verification/review, hazard ownership, escalation section, and one-task/one-commit discipline. Replace external IDs with Task 1 IDs or inline SDD-specific work in `ship-change`.
+-- [ ] **Step 4: Run `bash tests/test-sdd-contract.sh`.** Expected: PASS; all consumers and templates agree on the local IDs and exact paths.
+-- [ ] **Step 5: Run `git diff --check` and review the SDD references as a whole.** Expected: no stale operational path or missing lifecycle phase.
++- [x] **Step 1: Write the failing SDD contract test.** Assert that the command and developer route large changes to `ship-change`; that the SDD skill names its local helper IDs and preserves scope → spec → plan → tasks → review → ledger → closeout; that templates use `docs/specs/`, `docs/plans/`, and `.work/sdd/` rather than vendor-named paths; and that `.work/sdd/` is not ignored by the repo.
++- [x] **Step 2: Run `bash tests/test-sdd-contract.sh`.** Expected: FAIL on the current external skill IDs and `docs/superpowers/` / `.superpowers/sdd/` paths.
++- [x] **Step 3: Update the SDD instructions and templates.** Keep the six leakage-prevention rules, per-task verification/review, hazard ownership, escalation section, and one-task/one-commit discipline. Replace external IDs with Task 1 IDs or inline SDD-specific work in `ship-change`.
++- [x] **Step 4: Run `bash tests/test-sdd-contract.sh`.** Expected: PASS; all consumers and templates agree on the local IDs and exact paths.
++- [x] **Step 5: Run `git diff --check` and review the SDD references as a whole.** Expected: no stale operational path or missing lifecycle phase.
+ - [ ] **Step 6: Commit** as `refactor(sdd): usa skills y rutas locales`.
+ 
+ ### Task 3: Remove Superpowers from setup, config, and diagnostics
+diff --git a/skills/ship-change/SKILL.md b/skills/ship-change/SKILL.md
+index 1b212f9..23a5c8e 100644
+--- a/skills/ship-change/SKILL.md
++++ b/skills/ship-change/SKILL.md
+@@ -1,164 +1,72 @@
+ ---
+ name: ship-change
+-description: Convierte una feature en un cambio terminado mediante el flujo SDD de superpowers — spec, plan, tareas con briefs, review por tarea y ledger — y cierra con @linked, docs y tests en verde. Úsalo para features multi-archivo, refactors grandes o migraciones; para un fix pequeño, el bucle del agente developer basta.
++description: Úsalo para features de varios archivos, migraciones, cambios de contrato o trabajo que abarque varias sesiones y necesite un ciclo SDD completo.
+ ---
+ 
+-# Ship a change (SDD)
++# Cerrar un cambio (SDD)
+ 
+-El flujo que ya usas, con las partes que se estaban perdiendo afinadas. Si el
+-cambio cabe en un fix pequeño, **no lo conviertas en ceremonia**: usa el bucle
+-del agente developer y listo.
++Flujo local para llevar un cambio sustancial desde la intención hasta commits verificados. Un fix pequeño, una función o un cambio de texto sigue el bucle normal del agente `developer`; no añadas ceremonia SDD si no hacen falta tareas coordinadas.
+ 
+-## Cuándo este flujo y cuándo no
++## Cuándo usarlo
+ 
+ | Cambio | Flujo |
+ |---|---|
+-| Fix de una función, texto, ajuste de estilo | Bucle del developer |
+-| Migración de datos, cambio de contrato, feature multi-archivo | **Este flujo** |
+-| Más de 3 ficheros o más de una sesión de trabajo | **Este flujo** |
++| Fix pequeño, una función o texto | Bucle del developer |
++| Migración, cambio de contrato o feature multiarchivo | Este flujo SDD |
++| Más de tres archivos o más de una sesión | Este flujo SDD |
+ 
+-## Las fases
++## Fases
+ 
+ ### 0. Alcance
+ 
+-Antes de escribir nada, en una frase: qué cambia, qué no cambia, y cómo se
+-sabe que está terminado. Si no puedes decirlo, el problema no es el código, es
+-el alcance.
++Resume en una frase qué cambia, qué no cambia y cómo se reconocerá que terminó. Si el alcance cubre subsistemas independientes, divídelo en specs antes de planificar.
+ 
+-### 1. Spec
++### 1. Diseño y spec
+ 
+-Skill `brainstorming`. Sale en `docs/superpowers/specs/YYYY-MM-DD-<slug>-design.md`.
+-Es de la **fase**, no de la tanda: un solo spec puede alimentar varios planes.
++Aclara propósito, usuario, restricciones, casos límite y criterios de éxito antes de implementar. Pregunta las decisiones que cambian el comportamiento; registra supuestos sólo cuando no alteren el diseño.
+ 
+-Si hay decisiones que todavía no has formulado, **pregúntalas en un solo mensaje y
+-todas juntas**, ordenadas por lo que más bloquean. Y avanza con el valor por
+-defecto en las que no cambien el diseño, diciendo en el spec cuál has supuesto.
++Escribe una spec de fase en `docs/specs/YYYY-MM-DD-<slug>-design.md`. Usa `references/spec-plan.md`. Incluye problema, alcance, diseño, casos límite, decisiones pendientes y responsables, opciones descartadas, aceptación automática y humana. Una spec de fase puede alimentar varios planes.
+ 
+-Por qué en lote, y no de una en una: cuarenta viajes de ida y vuelta antes de
+-escribir una línea no es rigor, es un peaje. Preguntar todo en un mensaje cuesta
+-lo mismo y devuelve lo mismo.
+-
+-Y ojo con el motivo real: no es que el modelo decida, es que **tú veas** las
+-decisiones que no habías formulado. Eso pasa igual en lote que de una en una.
+-
+-Si el usuario ya sabe exactamente lo que quiere, no preguntes nada: un spec corto
+-y a ejecutar. No le montes una elección de requisitos.
+-
+-Recoge el diseño, los casos límite, **las decisiones que se descartaron y por
+-qué** —esa parte es la que ahorra tiempo tres semanas después— y **las que quedan
+-pendientes**, con qué bloquean y quién las decide. Formato en
+-`references/spec-plan.md`.
+-
+-Una decisión pendiente no bloquea la ejecución: se anota y se sigue. Bloquea al
+-cerrar la tarea que dependía de ella, y eso va al ledger.
++Si el cambio depende de elegir una interfaz de módulo o un seam de pruebas, usa `codebase-design` para comparar opciones antes de aprobar la spec.
+ 
+ ### 2. Plan
+ 
+-Skill `writing-plans`. Sale en `docs/superpowers/plans/YYYY-MM-DD-<slug>-plan.md`.
+-
+-Descompón en tareas. Cada tarea:
+-
+-- es un commit
+-- deja el repo en verde
+-- se puede revisar por separado
+-
+-Una tarea que deja los tests rojos no es una tarea: es la mitad de una.
++Escribe un plan de tanda en `docs/plans/YYYY-MM-DD-<slug>-plan.md`. Descompón el trabajo en tareas ordenadas; cada tarea nombra archivos exactos, interfaces, pruebas y el cambio que deja el repo en verde. Usa `references/spec-plan.md`.
+ 
+ ### 3. Tareas
+ 
+-Skill `subagent-driven-development`. Cada tarea en
+-`.superpowers/sdd/YYYY-MM-DD-<slug>/`:
+-
+-- `task-N-brief.md` — el formato está en `references/brief.md`
+-- `task-N-report.md` — lo que hizo, y **qué encontró que no estaba en el brief**
+-- `review-<shaA>..<shaB>.diff` — el diff de la tarea
+-
+-El implementador **no se limita a obedecer el brief**. Si encuentra que el brief
+-está mal, o que el brief y el código no encajan, lo arregla y lo deja escrito en
+-el report. Eso no es desviarse: es el valor del flujo.
+-
+-### 4. Ledger
+-
+-`progress.md` en la carpeta de la SDD. Formato y disciplina de hallazgos
+-diferidos en `references/ledger.md`.
+-
+-### 5. Cierre
+-
+-Skills `verification-before-completion` y `requesting-code-review`.
+-
+-- `@linked`: cada fichero tocado actualiza su `.md` en el mismo commit, y el
+-  índice maestro (`docs/index.md`) crece si hay entrada nueva.
+-- Gate completo: tests → build → lint → e2e si toca rutas públicas o panel.
+-- Review final con el agente `reviewer` sobre el rango completo de la SDD.
++Guarda los artefactos en `.work/sdd/YYYY-MM-DD-<slug>/`:
+ 
+-## Las seis reglas que evitan las fugas
++- `task-N-brief.md`: contrato, archivos, interfaces, pasos y acciones que la tarea no autoriza; usa `references/brief.md`.
++- `task-N-report.md`: resultado, desviaciones y supuestos o defectos del brief que se descubrieron.
++- `review-<shaA>..<shaB>.diff`: entrada de review para el rango de commits de la tarea.
++- `progress.md`: estado, hazards, hallazgos diferidos y escalaciones; usa `references/ledger.md`.
+ 
+-Cada una sale de algo que ya se te perdió en un ledger anterior. Están aquí
+-para que no se repitan.
++Al empezar una tarea, lee su brief y revisa los hazards abiertos. Si uno afecta la tarea, arréglalo primero. Trabaja en ciclos red-green pequeños con `tdd`; usa `diagnosing-bugs` cuando el bug no tenga causa o reproducción fiables. Respeta el brief, conserva cambios ajenos del working tree y añade sólo las rutas nombradas, nunca `git add -A`.
+ 
+-### 1. Un hallazgo diferido siempre tiene destino
++Cada tarea es un commit revisable y deja el repo en verde. Tras implementarla, ejecuta sus verificaciones y pide al agente de sólo lectura `reviewer` que revise su diff. Anota el resultado y cada hallazgo diferido en el ledger antes de seguir.
+ 
+-Encontraste algo que no es de esta tarea. **No lo escribas y sigas.**
++### 4. Cierre
+ 
+-```
+-important (deferred → Task 8 PlayPage wiring)
+-minor (rechazado: cosmético, el formateador lo arregla solo)
+-```
++Ejecuta el gate del proyecto en el orden documentado: tests, build, lint y end-to-end si el cambio afecta rutas públicas, paneles o autenticación. Usa `verification` antes de declarar éxito y `code-review` para la review final del rango completo.
+ 
+-O tiene tarea, o tiene motivo del rechazo. Un `(deferred)` a secas es un
+-hallazgo que se pierde, y sueles encontrártelo cuando ya es otro contexto.
++- Actualiza la documentación `@linked` y `docs/index.md` en el mismo cambio lógico cuando corresponda.
++- Contrasta la documentación con el `AGENTS.md` del proyecto; una contradicción es un defecto que hay que resolver.
++- Las afirmaciones sobre tamaño o rendimiento requieren cifras medidas.
++- No hagas push, publiques, despliegues ni cambies cuentas externas sin autorización explícita del usuario.
+ 
+-### 2. Los hazards se revisan al empezar una tarea, no al terminarla
++## Reglas contra fugas
+ 
+-Si una tarea deja un **crash latente** que se arregla tres tareas después,
+-mientras tanto el repo está roto para quien venga. Eso ha pasado.
+-
+-Al empezar cada tarea, mira los hazards diferidos y comprueba si te tocan. Si
+-sí, es lo primero que arreglas. El registro de hazards está en el ledger, y se
+-revisa **al abrir** la tarea siguiente.
+-
+-### 3. Un doc que se contradice con el `AGENTS.md` es un bug
+-
+-Ha pasado: un doc afirmaba un mínimo de 64px donde el `AGENTS.md` exigía 72px.
+-Los tests medían lo que el doc decía, así que los dos parecían correctos y nadie
+-se enteró meses después.
+-
+-Cuando toques un doc, contrasta sus afirmaciones con las reglas del proyecto. Si
+-se contradicen, el `AGENTS.md` gana y el doc se corrige.
+-
+-### 4. Un test que nunca falló no es un test
+-
+-Cada test nuevo se demuestra **rojo contra el código viejo** antes de pasar a
+-verde contra el nuevo. Si no puedes explicar cómo se rompe, el test es
+-decorativo y solo da falsa confianza.
+-
+-### 5. Una afirmación de tamaño o rendimiento sin cifra no cuenta
+-
+-No escribas "optimizado" ni "sin regresiones". Escribe los números:
+-
+-```
+-index-*.js 380.79 kB (0 referencias) + PackScene-*.js 908.86 kB (gzip 240.81)
+-```
+-
+-Si el cambio toca peso de bundle o rendimiento, la cifra medida va en el report.
+-Sin cifra, es una opinión.
+-
+-### 6. Las escalaciones al dueño de la feature tienen su propio sitio
+-
+-Cuando el brief y el producto se contradicen — el brief pedía algo que choca
+-con una regla que ya conocías —, el implementador no elige en silencio. Lo
+-cumple, lo cumple **por encima** de lo que le dijeron, y lo escala.
+-
+-Pon esas escalaciones en una sección propia del ledger, no enterradas en el
+-report de una tarea. Son decisiones de producto, no de código, y se pierden con
+-mucho más facilidad.
++1. **Todo hallazgo diferido tiene destino.** Asígnale una tarea o registra por qué se rechazó; nunca lo dejes como “diferido” a secas.
++2. **Revisa hazards al empezar cada tarea.** Un estado intermedio roto sigue abierto hasta que se arregle o se rechace con motivo y responsable.
++3. **Un doc que contradice al `AGENTS.md` es un defecto.** Resuelve la contradicción al encontrarla.
++4. **Un test que nunca falló no está demostrado.** Comprueba el red esperado antes de confiar en el verde.
++5. **Las afirmaciones de tamaño o rendimiento necesitan medidas.** Registra valores antes/después cuando corresponda.
++6. **Las escalaciones de producto tienen sección propia en el ledger.** No las entierres en el informe de una tarea.
+ 
+ ## Cuándo parar y preguntar
+ 
+-- El spec y el código no encajan, y no hay forma obvia de resolverlo.
+-- Una tarea resulta ser tres.
+-- El gate falla y no es obvio por qué.
+-- El cambio toca algo que el `AGENTS.md` prohíbe explícitamente.
+-
+-Parar y preguntar cuesta un mensaje. Seguir destructivamente cuesta un
+-`git reset` y tu confianza en el flujo.
++- La spec contradice el comportamiento real y no hay un valor por defecto seguro.
++- Una tarea se convierte en tareas independientes o la interfaz ya no coincide con el plan.
++- Falla un gate y la causa no está clara.
++- El cambio contradice una instrucción explícita del proyecto.
+diff --git a/skills/ship-change/references/brief.md b/skills/ship-change/references/brief.md
+index 7641bce..1e3abe9 100644
+--- a/skills/ship-change/references/brief.md
++++ b/skills/ship-change/references/brief.md
+@@ -1,6 +1,6 @@
+ # Task brief — formato
+ 
+-Un brief por tarea, en `.superpowers/sdd/<YYYY-MM-DD-slug>/task-N-brief.md`.
++Un brief por tarea, en `.work/sdd/<YYYY-MM-DD-slug>/task-N-brief.md`.
+ El implementador (tú o un subagent) lo ejecuta **sin volver a preguntar nada**.
+ 
+ La regla que lo gobierna: **el brief no puede contener una decisión abierta.** Si
+@@ -32,12 +32,7 @@ no en prosa.
+ - [ ] 4. Implementar el módulo
+ - [ ] 5. Ejecutar el gate y comprobar que pasa
+ - [ ] 6. Actualizar `@linked` + `docs/index.md`
+-- [ ] 7. Commit
+-
+-```bash
+-git add -A
+-git commit -m "feat(scope): qué hace, en una línea"
+-```
++- [ ] 7. Commit: añade sólo las rutas de `Files` (nunca `git add -A`); usa Conventional Commits y escribe el mensaje en un fichero para ejecutar `git commit -F`.
+ 
+ **Lo que esta tarea NO autoriza:**
+ - Investigar proveedores, comparar precios: sí. Contratar uno: no.
+diff --git a/skills/ship-change/references/ledger.md b/skills/ship-change/references/ledger.md
+index c16f401..cd89539 100644
+--- a/skills/ship-change/references/ledger.md
++++ b/skills/ship-change/references/ledger.md
+@@ -1,6 +1,6 @@
+ # Ledger (`progress.md`) — formato y disciplina
+ 
+-`progress.md`, en `.superpowers/sdd/<YYYY-MM-DD-slug>/`. Es el estado del
++`progress.md`, en `.work/sdd/<YYYY-MM-DD-slug>/`. Es el estado del
+ proyecto para quien llegue en frío: dentro de seis meses, tú.
+ 
+ No es un diario. Es la respuesta a tres preguntas: **qué está hecho, qué se
+@@ -9,7 +9,7 @@ aplazó, y qué está roto a medias.**
+ ## Estructura
+ 
+ ````markdown
+-# SDD ledger — plan: docs/superpowers/plans/2026-10-05-ejemplo-f2.md
++# SDD ledger — plan: docs/plans/2026-10-05-ejemplo-f2.md
+ 
+ ## Task status
+ 
+diff --git a/skills/ship-change/references/spec-plan.md b/skills/ship-change/references/spec-plan.md
+index f30f974..fc6f486 100644
+--- a/skills/ship-change/references/spec-plan.md
++++ b/skills/ship-change/references/spec-plan.md
+@@ -10,7 +10,7 @@ en el spec, y en el plan solo la lista ordenada de tareas. Si una decisión
+ pendiente acaba en el plan de una tanda, cuando releas el spec de la fase no
+ estará.
+ 
+-## Spec — `docs/superpowers/specs/YYYY-MM-DD-<slug>-design.md`
++## Spec — `docs/specs/YYYY-MM-DD-<slug>-design.md`
+ 
+ ```markdown
+ # <Qué cambia, en una frase>
+@@ -69,7 +69,7 @@ Las **decisiones descartadas** son la sección que más valor da y la que más s
+ salta. Es lo único que evita que dentro de tres meses alguien proponga lo mismo
+ que ya rechazaste.
+ 
+-## Plan — `docs/superpowers/plans/YYYY-MM-DD-<slug>-plan.md`
++## Plan — `docs/plans/YYYY-MM-DD-<slug>-plan.md`
+ 
+ El plan es la descomposición en tareas. Su trabajo es dejar cada tarea
+ **verificable por separado**.
+@@ -77,7 +77,7 @@ El plan es la descomposición en tareas. Su trabajo es dejar cada tarea
+ ```markdown
+ # Plan: <slug>
+ 
+-Spec: docs/superpowers/specs/YYYY-MM-DD-<slug>-design.md
++Spec: docs/specs/YYYY-MM-DD-<slug>-design.md
+ 
+ ## Orden de tareas
+ | # | Qué hace | Depende de | Deja verde |
+diff --git a/tests/test-sdd-contract.sh b/tests/test-sdd-contract.sh
+new file mode 100644
+index 0000000..25f7af7
+--- /dev/null
++++ b/tests/test-sdd-contract.sh
+@@ -0,0 +1,55 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++FILES=(
++  "$REPO_DIR/skills/ship-change/SKILL.md"
++  "$REPO_DIR/skills/ship-change/references/spec-plan.md"
++  "$REPO_DIR/skills/ship-change/references/brief.md"
++  "$REPO_DIR/skills/ship-change/references/ledger.md"
++  "$REPO_DIR/agents/developer.md"
++  "$REPO_DIR/commands/ship.md"
++)
++failures=0
++
++fail() {
++  printf 'FAIL: %s\n' "$*" >&2
++  failures=$((failures + 1))
++}
++
++for file in "${FILES[@]}"; do
++  for legacy in \
++    'docs/superpowers/' \
++    '.superpowers/sdd/' \
++    'test-driven-development' \
++    'verification-before-completion' \
++    'requesting-code-review' \
++    'writing-plans' \
++    'subagent-driven-development' \
++    'brainstorming'; do
++    grep -Fq "$legacy" "$file" && fail "$file still references $legacy"
++  done
++done
++
++for expected in \
++  'docs/specs/YYYY-MM-DD-' \
++  'docs/plans/YYYY-MM-DD-' \
++  '.work/sdd/YYYY-MM-DD-'; do
++  grep -Fq "$expected" "${FILES[@]}" || fail "missing SDD artifact path: $expected"
++done
++
++for skill_id in tdd diagnosing-bugs verification code-review codebase-design; do
++  grep -Fq "$skill_id" "$REPO_DIR/skills/ship-change/SKILL.md" \
++    || fail "ship-change does not reference local skill $skill_id"
++done
++
++grep -Fq 'ship-change' "$REPO_DIR/agents/developer.md" \
++  || fail 'developer does not route large changes to ship-change'
++grep -Fq 'developer' "$REPO_DIR/commands/ship.md" \
++  || fail '/ship command does not use the developer agent'
++
++if [ "$failures" -ne 0 ]; then
++  exit 1
++fi
++
++printf 'PASS: SDD consumers use local skills and neutral artifact paths\n'

@@ -1,0 +1,230 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/progress.md b/.work/sdd/2026-10-20-sdd-local/progress.md
+index 7f28a48..83aa617 100644
+--- a/.work/sdd/2026-10-20-sdd-local/progress.md
++++ b/.work/sdd/2026-10-20-sdd-local/progress.md
+@@ -5,13 +5,15 @@
+ Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-catalog.sh` → PASS)
+ Task 2: complete (commits b78ae28..ead78ae, tests: SDD contract + local skill catalog + link regression → PASS)
+ Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit-example.sh` → PASS)
+-Task 4: in progress
++Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
++Task 5: in progress
+ 
+ ## Pre-flight
+ 
+ - Task 1 → Task 2: Task 1 produces the local skill IDs `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification`; Task 2 consumes those IDs. Names align.
+ - Task 2 → Task 3: Task 2 produces the canonical SDD paths and local references; Task 3 updates config, setup, diagnostics, and docs to those contracts. Names align.
+ - Task 3 → Task 4: Task 3 removes the dependency-specific example; Task 4's operational-reference test requires all user-facing docs to be neutral. Names align.
++- Task 4 → Task 5: Task 4 verifies local skill files; Task 5 verifies the effective runtime catalog for the same IDs. Names align.
+ 
+ ## Rulings
+ 
+@@ -24,6 +26,8 @@ Task 4: in progress
+ - Ruling: Commit the selected helper skills as one Task 1 catalog change after individually pressure-testing each skill — their IDs and shared contract are verified together by one catalog test — cost if wrong: a skill-specific regression is less isolated in history, though its file remains independently revertible.
+ - Ruling: Split the `AGENTS.md` example cleanup into its own task/commit — the repository's global instructions prohibit changing AGENTS.md as a drive-by — cost if wrong: one extra atomic commit and task.
+ - Ruling: Fix the two Make recipe indentation errors found by `make -n setup` before accepting the dependency-removal test — the recipes had spaces instead of tabs — cost if wrong: setup would stop at parse time.
++- Ruling: Keep the earlier user-approved model/plugin commits on their existing branch; review this SDD feature from `d51c2d0` — those commits predate and are separate from the approved SDD spec — cost if wrong: a future PR from this branch to `main` still includes that earlier history.
++- Ruling: Add an API-backed runtime skill check to `make check` — review found static file checks did not prove OpenCode's effective catalog — cost if wrong: `make check` depends on the documented V2 `/api/skill` route.
+ 
+ ## Hazards abiertos
+ 
+@@ -59,7 +63,12 @@ Task 4: in progress
+ - `make -n setup` initially exposed missing Make recipe tabs at the help summary and upgrade recipe; after correcting them, setup parses and its dependency graph has no external skill install.
+ - `bash tests/test-no-superpowers-dependency.sh`, `make -n setup`, `bash -n scripts/check.sh`, `bash -n tests/test-no-superpowers-dependency.sh`, and `git diff --check` → PASS after dependency removal.
+ - `make check` → PASS: config parsed, agents and MCPs loaded, six required local skills verified, and all harness checks succeeded.
++- `python3 tests/test_check_skills.py` → 3/3 PASS; `tests/test-no-superpowers-dependency.sh` → PASS with the runtime API assertion; `make check` → PASS and reports all six required IDs from OpenCode's catalog.
++- `opencode api skill.list --param 'location[directory]=/home/ubuntu/projects/opencode-harness'` → returned all six required IDs from `/home/ubuntu/.config/opencode/skills`, the linked repo directory.
+ - Loaded `ship-change`, `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification` via the skill tool after removal of the external skill source → all six resolved from `~/.config/opencode/skills`.
++- Review feedback on `origin/main..HEAD`: prior user-approved model/plugin commits were outside this SDD spec; the feature review is therefore anchored at `d51c2d0`. Runtime discovery lacked regression coverage; the API parser test and `make check` integration now cover it.
++- Initial `make check` after a service restart briefly missed `developer` in its second catalog query; after waiting four seconds, the direct catalog had `developer` and the full check passed. This matches the documented service warm-up race; no code change was made for it.
++- `opencode api skill.list --param 'location[directory]=/home/ubuntu/projects/opencode-harness'` → returned the six required IDs from the linked global skill directory.
+ - Final pre-commit suite: `test-local-skill-catalog.sh`, `test-sdd-contract.sh`, `test-no-superpowers-dependency.sh`, `test-agent-commit-example.sh`, `test-link.sh`, `make -n setup`, `make check`, Bash syntax, and `git diff --check` → all passed.
+ - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
+ - `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+index a5783cd..73d1348 100644
+--- a/docs/plans/2026-10-20-sdd-local.md
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -91,7 +91,7 @@
+ - [x] **Step 4: Run the example test and `git diff --check`.** Expected: PASS.
+ - [x] **Step 5: Commit** as `docs(agents): neutraliza el ejemplo de dependencia`.
+ 
+-### Task 4: Remove Superpowers from setup, config, and diagnostics
++### Task 4: Remove the external setup dependency
+ 
+ **Files:**
+ - Modify: `opencode.jsonc`
+@@ -106,19 +106,40 @@
+ - Consumes: Task 1 local skill catalog, Task 2 SDD IDs/paths, and Task 3's neutral global instructions.
+ - Produces: setup and diagnostics that no longer require the external package, plugin, path, or skill count.
+ 
+-- [x] **Step 1: Write the failing dependency-removal test.** Check the operational config, Make targets, setup dependency graph, and check script for external package/path requirements; assert the OpenChamber plugin remains configured and setup still links local `skills/`.
++- [x] **Step 1: Write the failing dependency-removal test.** Check operational config, Make targets, setup dependency graph, and check script for external package/path requirements; assert the OpenChamber plugin remains configured and setup still links local `skills/`.
+ - [x] **Step 2: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: FAIL on the current plugin, external skill source, Make target, and checks.
+ - [x] **Step 3: Remove the external dependency.** Delete only the external plugin/source and installation variables/target; make `setup` independent of it; replace external checks with required local-skill checks; update help and docs. Do not remove anything from the user's home directory or alter unrelated skills/plugins.
+ - [x] **Step 4: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: PASS; external setup/config checks are absent and local setup remains declared.
+-- [x] **Step 5: Run `make -n setup`, `bash tests/test-link.sh`, `bash -n scripts/check.sh`, and `git diff --check`.** Expected: setup's printed dependency graph contains no external skill install; regression test passes; syntax and whitespace checks pass.
+-- [x] **Step 6: Verify the live OpenCode V2 config and skill catalog.** Confirm `opencode debug config` parses the config, the OpenChamber plugin remains, and each required local skill loads from the linked global `skills/` directory.
+-- [x] **Step 7: Run `make check`.** Expected: all harness checks pass without checking for an external skill directory.
+-- [ ] **Step 8: Commit** as `refactor(setup): elimina la dependencia de Superpowers`.
++- [x] **Step 5: Run `make -n setup`, `bash tests/test-link.sh`, `bash -n scripts/check.sh`, and `git diff --check`.** Expected: setup's dependency graph contains no external skill install; regression test, syntax, and whitespace checks pass.
++- [x] **Step 6: Verify OpenCode V2 config and local skill discovery.** Confirm config parses, OpenChamber remains configured, and the required skills load from the linked global directory.
++- [x] **Step 7: Run `make check`.** Expected: harness checks pass without requiring an external skill source.
++- [x] **Step 8: Commit** as `refactor(setup): elimina la dependencia de Superpowers`.
++
++### Task 5: Verify the effective OpenCode skill catalog
++
++**Files:**
++- Modify: `scripts/check.sh`
++- Modify: `tests/test-no-superpowers-dependency.sh`
++- Create: `scripts/check_skills.py`
++- Test: `tests/test_check_skills.py`
++
++**Interfaces:**
++- Consumes: Task 1's required local skill IDs and OpenCode V2's `GET /api/skill` response for the current directory.
++- Produces: `missing_required_skills(payload, required)`, which returns missing IDs or raises `ValueError` for an invalid response; `make check` fails when a required skill file exists but OpenCode does not discover it.
++
++- [x] **Step 1: Extend the dependency test** to require `check.sh` to query `opencode api skill.list` with the current project location.
++- [x] **Step 2: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: FAIL because the runtime query is not present.
++- [x] **Step 3: Write the parser unit test** for a complete API payload, a missing required ID, and malformed data.
++- [x] **Step 4: Run `python3 tests/test_check_skills.py`.** Expected: FAIL because `scripts/check_skills.py` and the helper are not implemented.
++- [x] **Step 5: Implement the parser and runtime check.** Keep static file checks, query `/api/skill` with `location[directory]`, and surface API or missing-ID failures through `check.sh`.
++- [x] **Step 6: Run the parser and dependency tests.** Expected: PASS; missing runtime skills fail even if their local files exist.
++- [x] **Step 7: Verify the live API** returns all required skill IDs for this repo, then run `make check`. Expected: all local skills are found and the harness gate passes.
++- [ ] **Step 8: Commit** as `fix(check): verifica skills en el catálogo de OpenCode`.
+ 
+ ## Final gate
+ 
+-- [ ] Run all four new shell tests and `tests/test-link.sh`.
+-- [ ] Run `bash -n scripts/check.sh` and `git diff --check`.
++- [ ] Run all four new shell tests, `python3 tests/test_check_skills.py`, and `tests/test-link.sh`.
++- [ ] Run `bash -n scripts/check.sh`, parse `scripts/check_skills.py`, and run `git diff --check`.
+ - [ ] Read the full final diff; confirm no edits to unrelated untracked skills and no removal of the user's installed package.
+ - [ ] Run `make check` and verify the local skills in OpenCode V2.
+ - [ ] Review the full branch against `docs/specs/2026-10-20-sdd-local-design.md` before any push or merge.
+diff --git a/scripts/check.sh b/scripts/check.sh
+index 79879c3..e3a3274 100755
+--- a/scripts/check.sh
++++ b/scripts/check.sh
+@@ -273,6 +273,19 @@ for skill_id in "${REQUIRED_SKILLS[@]}"; do
+   fi
+ done
+ 
++# File presence is not enough: OpenCode's effective catalog must discover each
++# skill from the linked global directory, with the current repo as its location.
++echo
++say "consultando el catálogo de skills de OpenCode para $REPO_DIR..."
++if skills_out="$(opencode api skill.list \
++    --param "location[directory]=$REPO_DIR" 2>&1 \
++    | python3 "$REPO_DIR/scripts/check_skills.py" "${REQUIRED_SKILLS[@]}" 2>&1)"; then
++  ok "$skills_out"
++else
++  bad "$skills_out"
++  fallar
++fi
++
+ # --------------------------------------------------------------- resumen
+ h "Resumen"
+ if [ "$fallos" -eq 0 ]; then
+diff --git a/scripts/check_skills.py b/scripts/check_skills.py
+new file mode 100644
+index 0000000..3031f25
+--- /dev/null
++++ b/scripts/check_skills.py
+@@ -0,0 +1,43 @@
++#!/usr/bin/env python3
++"""Valida skills requeridos en el catálogo runtime de OpenCode."""
++
++import json
++import sys
++
++
++def missing_required_skills(payload, required):
++    """Devuelve IDs requeridos ausentes en una respuesta GET /api/skill."""
++    if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
++        raise ValueError("la respuesta del catálogo debe contener una lista `data`")
++
++    discovered = {
++        item.get("id")
++        for item in payload["data"]
++        if isinstance(item, dict) and isinstance(item.get("id"), str)
++    }
++    return [skill_id for skill_id in required if skill_id not in discovered]
++
++
++def main():
++    required = sys.argv[1:]
++    if not required:
++        print("debe indicarse al menos un ID de skill requerido", file=sys.stderr)
++        return 2
++
++    try:
++        payload = json.load(sys.stdin)
++        missing = missing_required_skills(payload, required)
++    except (json.JSONDecodeError, ValueError) as error:
++        print("OpenCode devolvió un catálogo de skills inválido: %s" % error, file=sys.stderr)
++        return 1
++
++    if missing:
++        print("OpenCode no descubrió los skills requeridos: %s" % ", ".join(missing), file=sys.stderr)
++        return 1
++
++    print("OpenCode descubrió todos los skills locales requeridos: %s" % ", ".join(required))
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/tests/test-no-superpowers-dependency.sh b/tests/test-no-superpowers-dependency.sh
+index 8555131..01242f5 100644
+--- a/tests/test-no-superpowers-dependency.sh
++++ b/tests/test-no-superpowers-dependency.sh
+@@ -38,6 +38,10 @@ for skill_id in ship-change tdd diagnosing-bugs code-review codebase-design veri
+   grep -Fq "$skill_id" "$REPO_DIR/scripts/check.sh" \
+     || fail "check.sh does not validate local skill $skill_id"
+ done
++grep -Fq 'opencode api skill.list' "$REPO_DIR/scripts/check.sh" \
++  || fail "check.sh does not verify OpenCode's effective skill catalog"
++grep -Fq 'location[directory]' "$REPO_DIR/scripts/check.sh" \
++  || fail 'check.sh does not scope skill discovery to this repo'
+ 
+ if ! make_plan="$(cd "$REPO_DIR" && make -n setup 2>&1)"; then
+   fail "make -n setup failed: $make_plan"
+diff --git a/tests/test_check_skills.py b/tests/test_check_skills.py
+new file mode 100644
+index 0000000..3907d1e
+--- /dev/null
++++ b/tests/test_check_skills.py
+@@ -0,0 +1,32 @@
++#!/usr/bin/env python3
++import sys
++import unittest
++from pathlib import Path
++
++sys.dont_write_bytecode = True
++sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
++
++from check_skills import missing_required_skills
++
++
++REQUIRED = ["ship-change", "tdd", "diagnosing-bugs", "code-review", "codebase-design", "verification"]
++
++
++class MissingRequiredSkillsTests(unittest.TestCase):
++    def test_complete_runtime_catalog_has_no_missing_skills(self):
++        payload = {"data": [{"id": skill_id} for skill_id in REQUIRED]}
++
++        self.assertEqual([], missing_required_skills(payload, REQUIRED))
++
++    def test_reports_required_ids_missing_from_runtime(self):
++        payload = {"data": [{"id": skill_id} for skill_id in REQUIRED if skill_id != "code-review"]}
++
++        self.assertEqual(["code-review"], missing_required_skills(payload, REQUIRED))
++
++    def test_rejects_invalid_catalog_shape(self):
++        with self.assertRaises(ValueError):
++            missing_required_skills({"skills": []}, REQUIRED)
++
++
++if __name__ == "__main__":
++    unittest.main()

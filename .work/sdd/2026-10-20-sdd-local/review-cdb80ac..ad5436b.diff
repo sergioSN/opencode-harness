@@ -1,0 +1,490 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/progress.md b/.work/sdd/2026-10-20-sdd-local/progress.md
+index fa8f128..7f28a48 100644
+--- a/.work/sdd/2026-10-20-sdd-local/progress.md
++++ b/.work/sdd/2026-10-20-sdd-local/progress.md
+@@ -4,13 +4,14 @@
+ 
+ Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-catalog.sh` → PASS)
+ Task 2: complete (commits b78ae28..ead78ae, tests: SDD contract + local skill catalog + link regression → PASS)
+-Task 3: in progress
++Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit-example.sh` → PASS)
+ Task 4: in progress
+ 
+ ## Pre-flight
+ 
+ - Task 1 → Task 2: Task 1 produces the local skill IDs `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification`; Task 2 consumes those IDs. Names align.
+ - Task 2 → Task 3: Task 2 produces the canonical SDD paths and local references; Task 3 updates config, setup, diagnostics, and docs to those contracts. Names align.
++- Task 3 → Task 4: Task 3 removes the dependency-specific example; Task 4's operational-reference test requires all user-facing docs to be neutral. Names align.
+ 
+ ## Rulings
+ 
+@@ -22,6 +23,7 @@ Task 4: in progress
+ - Ruling: Fold design discovery/spec into `ship-change` instead of creating `skills/designing-changes/` — the fresh baseline already asked the blocking permissions question and deferred coding under demo/manager pressure — cost if wrong: standalone design work may later benefit from a separate reusable skill.
+ - Ruling: Commit the selected helper skills as one Task 1 catalog change after individually pressure-testing each skill — their IDs and shared contract are verified together by one catalog test — cost if wrong: a skill-specific regression is less isolated in history, though its file remains independently revertible.
+ - Ruling: Split the `AGENTS.md` example cleanup into its own task/commit — the repository's global instructions prohibit changing AGENTS.md as a drive-by — cost if wrong: one extra atomic commit and task.
++- Ruling: Fix the two Make recipe indentation errors found by `make -n setup` before accepting the dependency-removal test — the recipes had spaces instead of tabs — cost if wrong: setup would stop at parse time.
+ 
+ ## Hazards abiertos
+ 
+@@ -54,5 +56,10 @@ Task 4: in progress
+ - `bash tests/test-no-superpowers-dependency.sh` → expected RED: Makefile/config/check script and operational docs still refer to the external package, and `check.sh` lacks the required local skill inventory.
+ - `bash tests/test-agent-commit-example.sh` → expected RED: the global commit example still says `chore(deps): sube superpowers...`.
+ - `bash tests/test-agent-commit-example.sh` → PASS after replacing that example; `git diff --check` → PASS.
++- `make -n setup` initially exposed missing Make recipe tabs at the help summary and upgrade recipe; after correcting them, setup parses and its dependency graph has no external skill install.
++- `bash tests/test-no-superpowers-dependency.sh`, `make -n setup`, `bash -n scripts/check.sh`, `bash -n tests/test-no-superpowers-dependency.sh`, and `git diff --check` → PASS after dependency removal.
++- `make check` → PASS: config parsed, agents and MCPs loaded, six required local skills verified, and all harness checks succeeded.
++- Loaded `ship-change`, `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification` via the skill tool after removal of the external skill source → all six resolved from `~/.config/opencode/skills`.
++- Final pre-commit suite: `test-local-skill-catalog.sh`, `test-sdd-contract.sh`, `test-no-superpowers-dependency.sh`, `test-agent-commit-example.sh`, `test-link.sh`, `make -n setup`, `make check`, Bash syntax, and `git diff --check` → all passed.
+ - `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
+ - `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.
+diff --git a/Makefile b/Makefile
+index 8206821..e431db0 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ # ============================================================
+ #  opencode-harness — el arnés de opencode, y OpenChamber encima
+ # ------------------------------------------------------------
+-#  make setup        instala todo: enlaces, plugins, CLIs
++#  make setup        enlaza la config, instala CLIs locales y comprueba
+ #  make check        estado real de todo el stack
+ #  make opencode / opencode-web / openchamber-*   lanzadores
+ #
+@@ -15,9 +15,6 @@ SHELL := /bin/bash
+ REPO        := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+ OC_DIR      ?= $(HOME)/.config/opencode
+ NPM_PREFIX  ?= $(HOME)/.local
+-SP_PREFIX   ?= $(HOME)/.local/share/superpowers
+-SP_REPO     := https://github.com/obra/superpowers.git
+-SP_PKG      ?= superpowers@git+$(SP_REPO)
+ 
+ # `npm` a secas es el de Hermes y sus globales se van a /usr/local, que es
+ # justo el duplicado que hubo que arreglar con openchamber. Con --prefix la
+@@ -56,7 +53,7 @@ CHECK_PROJECT = @test -n "$(PROJECT)" || { \
+ }
+ 
+ .PHONY: help link unlink check setup doctor compat \
+-        superpowers context7 context7-cli codegraph codegraph-snippet \
++        context7 context7-cli codegraph codegraph-snippet \
+         opencode opencode-web \
+         openchamber-desktop openchamber-web desktop web \
+         stop status upgrade clean
+@@ -72,7 +69,7 @@ help: ## Muestra esta ayuda
+ 	  | sort \
+ 	  | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+ 	@echo ""
+-	@echo "  make setup   = link + compat + superpowers + codegraph + check"
++	@echo "  make setup   = link + compat + codegraph + check"
+ 	@echo ""
+ 	@echo "  PROJECT= es obligatorio en los seis lanzadores."
+ 	@echo "  Ej:  make opencode-web PROJECT=~/projects/mi-proyecto"
+@@ -115,26 +112,6 @@ compat: ## Symlink en la ruta vieja, para los Makefiles que aun no han migrado
+ 	@echo "  Para dejarlo bien: cambia esa variable por $(REPO)"
+ 	@echo "  y luego borra este symlink."
+ 
+-## ------------------------------------------------------------ plugins
+-superpowers: ## Instala superpowers y deja sus skills en el array `skills`
+-	@echo "==> superpowers"
+-	@echo "    OJO: el paquete \`superpowers\` de npm es otro (0.0.2), no este."
+-	@echo "         La fuente real es el repo de git."
+-	@mkdir -p $(SP_PREFIX)
+-	@npm --prefix $(SP_PREFIX) i --no-fund --no-audit "$(SP_PKG)"
+-	@echo ""
+-	@echo "    instalado en: $(SP_PREFIX)/node_modules/superpowers"
+-	@echo "    skills:"
+-	@find $(SP_PREFIX)/node_modules/superpowers/skills -name SKILL.md 2>/dev/null \
+-	  | sed 's|.*/skills/||;s|/SKILL.md||' | sort | tr '\n' ' ' | fold -s -w 62 | sed 's/^/      /'
+-	@echo ""
+-	@echo "    Ya está en el array \`skills\` de opencode.jsonc. Comprueba con:"
+-	@echo "      make check"
+-	@echo ""
+-	@echo "    El plugin de V1 (hooks config + experimental.chat.messages.transform)"
+-	@echo "    probablemente no corre en V2; por eso los skills se registran"
+-	@echo "    apuntando a la ruta de arriba y no confiando en el hook."
+-
+ context7: ## Context7: MCP remoto, no hay nada que instalar. Opcional: la CLI
+ 	@echo "==> context7"
+ 	@echo "    El MCP es remoto (https://mcp.context7.com/mcp) y ya está"
+@@ -221,7 +198,7 @@ desktop: openchamber-desktop ## Alias de openchamber-desktop
+ web: openchamber-web ## Alias de openchamber-web
+ 
+ ## ------------------------------------------------------------- resto
+-setup: link compat superpowers codegraph ## Enlaza e instala todo
++setup: link compat codegraph ## Enlaza e instala lo necesario
+ 	@$(MAKE) --no-print-directory check
+ 
+ doctor: ## check + lo que ve opencode por su cuenta
+@@ -246,10 +223,6 @@ status: ## Lista los servidores de opencode y de OpenChamber en marcha
+ 
+ upgrade: ## Actualiza plugins, opencode y openchamber
+ 	@opencode plugin update 2>&1 | sed 's/^/   /'
+-	@echo ""
+-	@echo "    superpowers va por git, así que esto no lo actualiza."
+-	@echo "    Para eso: make superpowers   (reinstala desde el repo)"
+-	@echo ""
+ 	@$(UPGRADE_SH) $(UPGRADE_FLAGS)
+ 
+ clean: ## Borra los temporales de este repo
+diff --git a/NOTAS.md b/NOTAS.md
+index 3f03a2d..69ff107 100644
+--- a/NOTAS.md
++++ b/NOTAS.md
+@@ -52,8 +52,7 @@ Es la fuente habitual de líos, así que va explícito:
+ 
+ | Target | Qué hace |
+ |---|---|
+-| `make setup` | `link` + `superpowers` + `codegraph` + `compat` + `check` |
+-| `make superpowers` | Instala superpowers y registra sus skills |
++| `make setup` | `link` + `codegraph` + `compat` + `check` |
+ | `make context7` | Verifica el MCP remoto de context7 (no hay nada que instalar) |
+ | `make context7-cli` | Instala la CLI de context7 para la terminal |
+ | `make codegraph` | Instala el CLI de codegraph |
+@@ -136,31 +135,18 @@ make upgrade UPGRADE_FLAGS=--allow-major
+ > secas: un `npm i -g` mal dirigido deja **dos copias** instaladas y el symlink
+ > apuntando a la vieja.
+ 
+-## Ocho trampas
++## Ocho reglas operativas
+ 
+-### 1. `superpowers` es un plugin de v1
++### 1. Las skills del arnés viven en `skills/`
+ 
+-Su plugin usa dos hooks de la API de v1: uno `config` que empuja su carpeta a
+-`config.skills.paths`, y `experimental.chat.messages.transform`. Pero en v2
+-`skills` es un **array plano**, así que esa escritura ya no registra nada. El
+-propio doc de migración avisa: *«V1 plugin implementations do not run in V2»*.
++`make link` enlaza `skills/` con `~/.config/opencode/skills`, una ruta global que
++OpenCode V2 descubre automáticamente. Por eso los skills propios no necesitan
++una ruta externa en el array `skills` de `opencode.jsonc`.
+ 
+-El plugin sigue declarado en `plugins` y `opencode plugin list` lo muestra
+-registrado (con su SHA), pero **eso no significa que sus hooks corran**: lo que
+-aporta son código de v1, y en v2 no tiene efecto. La vía que funciona es el
+-array `skills` de la config:
+-
+-```jsonc
+-"skills": ["~/.local/share/superpowers/node_modules/superpowers/skills"]
+-```
+-
+-Verificado: los 15 skills son visibles para el modelo, y en la lista salen
+-`test-driven-development`, `verification-before-completion`, `writing-plans`,
+-`brainstorming` y `subagent-driven-development`, que son los que usa el agente
+-`developer` y la skill `ship-change`.
+-
+-Ojo también: el paquete `superpowers` de npm es **otro** (0.0.2), no este. La
+-fuente buena es la de git.
++Cada skill que forma parte del contrato del arnés tiene un directorio versionado
++y un `SKILL.md` con `description`; `scripts/check.sh` verifica los IDs requeridos.
++Los skills personales adicionales pueden descubrirse desde `~/.agents/skills`,
++pero no se convierten por eso en dependencias de `make setup`.
+ 
+ ### 2. `codegraph install` no entendería la config ni aguantaría el symlink
+ 
+diff --git a/README.md b/README.md
+index 474a36a..8eb894c 100644
+--- a/README.md
++++ b/README.md
+@@ -15,7 +15,7 @@ y no hay dos versiones que se desincronicen.
+ | `opencode.jsonc` | plugins, skills y servidores MCP |
+ | `AGENTS.md` | instrucciones globales |
+ | `agents/` | tres agentes: `developer`, `reviewer`, `janitor` |
+-| `skills/ship-change/` | el flujo spec → plan → tareas → review → ledger |
++| `skills/` | skills globales propias: flujo SDD, TDD, diagnóstico, diseño, review y verificación |
+ | `commands/ship.md` | `/ship <feature>` |
+ | `Makefile` | los lanzadores y el resto de targets |
+ | `scripts/` | enlazar, comprobar, lanzar y actualizar |
+@@ -25,7 +25,7 @@ y no hay dos versiones que se desincronicen.
+ ```sh
+ git clone https://github.com/sergioSN/opencode-harness.git
+ cd opencode-harness
+-make setup    # enlaza la config, instala plugins y CLIs, y comprueba
++make setup    # enlaza la config, instala la CLI de codegraph, y comprueba
+ make check    # el estado real, preguntando al propio opencode
+ ```
+ 
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+index 5e83a61..a5783cd 100644
+--- a/docs/plans/2026-10-20-sdd-local.md
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -89,7 +89,7 @@
+ - [x] **Step 2: Run `bash tests/test-agent-commit-example.sh`.** Expected: FAIL on the current `chore(deps): sube superpowers...` example.
+ - [x] **Step 3: Replace only that example** with a neutral agent/config example; preserve all other global instructions.
+ - [x] **Step 4: Run the example test and `git diff --check`.** Expected: PASS.
+-- [ ] **Step 5: Commit** as `docs(agents): neutraliza el ejemplo de dependencia`.
++- [x] **Step 5: Commit** as `docs(agents): neutraliza el ejemplo de dependencia`.
+ 
+ ### Task 4: Remove Superpowers from setup, config, and diagnostics
+ 
+@@ -108,11 +108,11 @@
+ 
+ - [x] **Step 1: Write the failing dependency-removal test.** Check the operational config, Make targets, setup dependency graph, and check script for external package/path requirements; assert the OpenChamber plugin remains configured and setup still links local `skills/`.
+ - [x] **Step 2: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: FAIL on the current plugin, external skill source, Make target, and checks.
+-- [ ] **Step 3: Remove the external dependency.** Delete only the external plugin/source and installation variables/target; make `setup` independent of it; replace external checks with required local-skill checks; update help and docs. Do not remove anything from the user's home directory or alter unrelated skills/plugins.
+-- [ ] **Step 4: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: PASS; external setup/config checks are absent and local setup remains declared.
+-- [ ] **Step 5: Run `make -n setup`, `bash tests/test-link.sh`, `bash -n scripts/check.sh`, and `git diff --check`.** Expected: setup's printed dependency graph contains no external skill install; regression test passes; syntax and whitespace checks pass.
+-- [ ] **Step 6: Verify the live OpenCode V2 config and skill catalog.** Confirm `opencode debug config` parses the config, the OpenChamber plugin remains, and each required local skill loads from the linked global `skills/` directory.
+-- [ ] **Step 7: Run `make check`.** Expected: all harness checks pass without checking for an external skill directory.
++- [x] **Step 3: Remove the external dependency.** Delete only the external plugin/source and installation variables/target; make `setup` independent of it; replace external checks with required local-skill checks; update help and docs. Do not remove anything from the user's home directory or alter unrelated skills/plugins.
++- [x] **Step 4: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: PASS; external setup/config checks are absent and local setup remains declared.
++- [x] **Step 5: Run `make -n setup`, `bash tests/test-link.sh`, `bash -n scripts/check.sh`, and `git diff --check`.** Expected: setup's printed dependency graph contains no external skill install; regression test passes; syntax and whitespace checks pass.
++- [x] **Step 6: Verify the live OpenCode V2 config and skill catalog.** Confirm `opencode debug config` parses the config, the OpenChamber plugin remains, and each required local skill loads from the linked global `skills/` directory.
++- [x] **Step 7: Run `make check`.** Expected: all harness checks pass without checking for an external skill directory.
+ - [ ] **Step 8: Commit** as `refactor(setup): elimina la dependencia de Superpowers`.
+ 
+ ## Final gate
+diff --git a/opencode.jsonc b/opencode.jsonc
+index 2675058..cb97612 100644
+--- a/opencode.jsonc
++++ b/opencode.jsonc
+@@ -15,39 +15,12 @@
+   // el doc de migración dice literalmente "Rename `plugin` to `plugins`".
+   // `opencode debug config` confirma que V2 lee y conserva esta clave.
+   //
+-  // ATENCIÓN — superpowers usa la API de plugins de V1:
+-  //   · un hook `config` que empuja su carpeta a config.skills.paths
+-  //     (en V1 `skills` era un objeto; en V2 es un array plano, así que esa
+-  //     escritura ya no registra nada)
+-  //   · el hook `experimental.chat.messages.transform`, que inyecta el texto
+-  //     de arranque en el primer mensaje
+-  // El doc de migración advierte: "V1 plugin implementations do not run in V2".
+-  // Se deja la entrada puesta por si tu versión lo carga, pero NO cuentes con
+-  // ella: el registro fiable de sus skills es el array `skills` de abajo.
+-  //
+-  // `superpowers` en npm es otro paquete (0.0.2) que no es este. La única
+-  // fuente correcta es la de git.
++  // Las skills locales viven en `skills/`, enlazado a
++  // ~/.config/opencode/skills. OpenCode V2 las descubre automáticamente.
+   "plugins": [
+-    "superpowers@git+https://github.com/obra/superpowers.git",
+     "@openchamber/opencode-claude@1.4.1"
+   ],
+ 
+-  // ----------------------------------------------------------------- skills
+-  //
+-  // V2 descubre skills por descubrimiento (rutas conocidas) y por este array.
+-  // El array es la vía que sí funciona en V2, y admite `~/`.
+-  //
+-  // Superpowers trae sus skills (brainstorming, test-driven-development,
+-  // systematic-debugging, writing-plans, using-git-worktrees...). Su plugin de
+-  // V1 los registraba, pero como ese hook ya no corre, los apuntamos aquí
+-  // directamente. La ruta la instala `make superpowers`; no la escribas a mano.
+-  //
+-  // Este array tiene la precedencia más alta, así que si el plugin de V1
+-  // llegara a registrar los mismos IDs, mandan estas rutas y no hay duplicados.
+-  "skills": [
+-    "~/.local/share/superpowers/node_modules/superpowers/skills"
+-  ],
+-
+   // -------------------------------------------------------------------- mcp
+   //
+   // En V2 los servidores cuelgan de `mcp.servers` (no directamente de `mcp`),
+diff --git a/scripts/check.sh b/scripts/check.sh
+index 8b2b34d..79879c3 100755
+--- a/scripts/check.sh
++++ b/scripts/check.sh
+@@ -11,7 +11,6 @@ set -uo pipefail
+ 
+ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ OC_DIR="${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}"
+-SP_SKILLS="$HOME/.local/share/superpowers/node_modules/superpowers/skills"
+ 
+ # El PATH no interactivo de WSL no trae ~/.local/bin, y fue
+ # exactamente lo que escondió el launcher de openchamber.
+@@ -107,48 +106,8 @@ else
+   fi
+ fi
+ 
+-# ------------------------------------------------------------- 3. plugins
+-h "3. Plugins"
+-if echo "$config_json" 2>/dev/null | grep -q 'superpowers@git+'; then
+-  ok "superpowers declarado en \`plugins\`"
+-else
+-  bad "superpowers no está en \`plugins\`"
+-  fallar
+-fi
+-plugin_list="$(opencode plugin list 2>&1)"
+-say "opencode plugin list dice:"
+-printf '%s\n' "$plugin_list" | sed -n '1,8p' | sed 's/^/     /'
+-say ""
+-if echo "$plugin_list" | grep -q 'superpowers'; then
+-  ok "superpowers registrado en el service"
+-else
+-  warn_ "superpowers no aparece en \`opencode plugin list\`"
+-fi
+-warn_ "Estar registrado no significa que funcione: su plugin usa hooks de V1"
+-say "(config.skills.paths y experimental.chat.messages.transform), y el doc de"
+-say "migración dice que los plugins de V1 no corren en V2. Lo que sí funciona"
+-say "son los 15 skills, y llegan por el array \`skills\` de la config. Sección 4."
+-
+-# -------------------------------------------------------------- 4. skills
+-h "4. Skills de superpowers (vía array \`skills\` de V2)"
+-if [ -d "$SP_SKILLS" ]; then
+-  n=$(find "$SP_SKILLS" -name SKILL.md 2>/dev/null | wc -l)
+-  if [ "$n" -gt 0 ]; then
+-    ok "$n skills instalados en $(basename "$(dirname "$SP_SKILLS")")/superpowers/skills"
+-    find "$SP_SKILLS" -name SKILL.md 2>/dev/null | sed "s|$SP_SKILLS/||;s|/SKILL.md||" \
+-      | sort | tr '\n' ' ' | fold -s -w 66 | sed 's/^/     /'
+-  else
+-    bad "el directorio existe pero no hay ningún SKILL.md"
+-    fallar
+-  fi
+-else
+-  bad "no está instalado: $SP_SKILLS"
+-  say "  Solución: make superpowers"
+-  fallar
+-fi
+-
+-# ----------------------------------------------------------------- 5. mcp
+-h "5. MCP (mcp.servers)"
++# -------------------------------------------------------------- 3. mcp
++h "3. MCP (mcp.servers)"
+ if echo "$config_json" 2>/dev/null | grep -q '"servers"'; then
+   ok "bloque \`mcp.servers\` presente (forma V2)"
+ else
+@@ -187,8 +146,8 @@ else
+   ok "ningún MCP en failed"
+ fi
+ 
+-# ------------------------------------------------------------ 6. binarios
+-h "6. Binarios"
++# ------------------------------------------------------------ 4. binarios
++h "4. Binarios"
+ if command -v codegraph >/dev/null 2>&1; then
+   ok "codegraph -> $(command -v codegraph)"
+ else
+@@ -208,8 +167,8 @@ case ":$PATH:" in
+   *) warn_ "~/.opencode/bin no está en el PATH" ;;
+ esac
+ 
+-# -------------------------------------------------------------- 7. agentes
+-h "7. Agents globales"
++# -------------------------------------------------------------- 5. agentes
++h "5. Agents globales"
+ agents_json="$(opencode debug agents 2>/dev/null)"
+ n_agents=$(printf '%s' "$agents_json" | grep -c '"id":' || true)
+ if [ "$n_agents" -gt 0 ]; then
+@@ -265,10 +224,10 @@ else
+   fallar
+ fi
+ 
+-# ------------------------------------------------------------- 8. commands
++# ------------------------------------------------------------- 6. commands
+ # `find` sin -L no baja por un symlink a directorio: daría 0 ficheros aunque
+ # `commands/ship.md` exista, que es justo el fallo que hay que cazar aquí.
+-h "8. Comandos globales"
++h "6. Comandos globales"
+ if [ -e "$OC_DIR/commands" ]; then
+   n_cmd=$(find -L "$OC_DIR/commands" -name '*.md' 2>/dev/null | wc -l)
+   if [ "$n_cmd" -gt 0 ]; then
+@@ -298,28 +257,21 @@ else
+   fallar
+ fi
+ 
+-# ------------------------------------------------------------ 9. skills
+-h "9. Skills propias"
+-if [ -d "$REPO_DIR/skills" ]; then
+-  n_own=$(find "$REPO_DIR/skills" -mindepth 2 -name SKILL.md 2>/dev/null | wc -l)
+-  if [ "$n_own" -gt 0 ]; then
+-    ok "$n_own skill(s) propia(s) en el repo"
+-    find "$REPO_DIR/skills" -mindepth 2 -name SKILL.md 2>/dev/null \
+-      | sed "s|$REPO_DIR/skills/||; s|/SKILL.md||" | sort \
+-      | tr '\n' ' ' | fold -s -w 66 | sed 's/^/     /'
+-    echo
+-    while IFS= read -r f; do
+-      if head -20 "$f" | grep -q '^description:'; then
+-        ok "$(basename "$(dirname "$f")") tiene description (es lo que lee el modelo)"
+-      else
+-        bad "$(basename "$(dirname "$f")") sin \`description\`: el modelo no sabrá cuándo cargarla"
+-        fallar
+-      fi
+-    done < <(find "$REPO_DIR/skills" -mindepth 2 -name SKILL.md 2>/dev/null)
++# ------------------------------------------------------------ 7. skills locales
++h "7. Skills locales"
++REQUIRED_SKILLS=(ship-change tdd diagnosing-bugs code-review codebase-design verification)
++for skill_id in "${REQUIRED_SKILLS[@]}"; do
++  skill_file="$REPO_DIR/skills/$skill_id/SKILL.md"
++  if [ ! -f "$skill_file" ]; then
++    bad "falta el skill local $skill_id"
++    fallar
++  elif ! head -20 "$skill_file" | grep -q '^description:'; then
++    bad "$skill_id no tiene description en el frontmatter"
++    fallar
+   else
+-    say "ninguna todavía"
++    ok "$skill_id local y descubrible"
+   fi
+-fi
++done
+ 
+ # --------------------------------------------------------------- resumen
+ h "Resumen"
+diff --git a/skills/.gitkeep b/skills/.gitkeep
+index 696b31e..40ab500 100644
+--- a/skills/.gitkeep
++++ b/skills/.gitkeep
+@@ -23,5 +23,5 @@
+ # el ID `mi-skill`, en minúsculas y kebab-case, tal cual. `name` es solo la
+ # etiqueta que se muestra.
+ #
+-# OJO: los skills de superpowers NO van aquí. Se registran por su propia vía
+-# (el array `skills` de opencode.jsonc) para no duplicar IDs. Ver el README.
++# Los skills propios del arnés viven aquí y se descubren desde la ruta global
++# enlazada. Mantén un `description` claro para que OpenCode sepa cuándo cargarlos.
+diff --git a/tests/test-no-superpowers-dependency.sh b/tests/test-no-superpowers-dependency.sh
+new file mode 100644
+index 0000000..8555131
+--- /dev/null
++++ b/tests/test-no-superpowers-dependency.sh
+@@ -0,0 +1,52 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++operational_files=(
++  Makefile
++  opencode.jsonc
++  scripts/check.sh
++  README.md
++  NOTAS.md
++  AGENTS.md
++  agents/developer.md
++  commands/ship.md
++  skills/.gitkeep
++  skills/ship-change/SKILL.md
++  skills/ship-change/references/spec-plan.md
++  skills/ship-change/references/brief.md
++  skills/ship-change/references/ledger.md
++)
++failures=0
++
++fail() {
++  printf 'FAIL: %s\n' "$*" >&2
++  failures=$((failures + 1))
++}
++
++for relative_path in "${operational_files[@]}"; do
++  file="$REPO_DIR/$relative_path"
++  if grep -qi 'superpowers' "$file"; then
++    fail "$relative_path still mentions the external dependency"
++  fi
++done
++
++grep -Fq '@openchamber/opencode-claude@1.4.1' "$REPO_DIR/opencode.jsonc" \
++  || fail 'the OpenChamber plugin was removed from opencode.jsonc'
++
++for skill_id in ship-change tdd diagnosing-bugs code-review codebase-design verification; do
++  grep -Fq "$skill_id" "$REPO_DIR/scripts/check.sh" \
++    || fail "check.sh does not validate local skill $skill_id"
++done
++
++if ! make_plan="$(cd "$REPO_DIR" && make -n setup 2>&1)"; then
++  fail "make -n setup failed: $make_plan"
++elif printf '%s\n' "$make_plan" | grep -qi 'superpowers'; then
++  fail 'make -n setup still invokes or installs Superpowers'
++fi
++
++if [ "$failures" -ne 0 ]; then
++  exit 1
++fi
++
++printf 'PASS: setup and operational docs are self-contained\n'

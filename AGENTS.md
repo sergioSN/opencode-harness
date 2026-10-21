@@ -42,7 +42,7 @@ otro, también es escribir commits**, y ahí no se cargan. Este fichero es el
 feat(auth): renueva el token antes de que expire
 fix(db): no traga el error si la migración ya corrió
 docs(readme): explica por qué el puerto es el 4096
-chore(deps): sube superpowers a la última
+chore(config): alinea los modelos de los agentes
 ```
 
 Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`,

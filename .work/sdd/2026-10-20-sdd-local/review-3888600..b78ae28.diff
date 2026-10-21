@@ -1,0 +1,658 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/progress.md b/.work/sdd/2026-10-20-sdd-local/progress.md
+new file mode 100644
+index 0000000..8f10be2
+--- /dev/null
++++ b/.work/sdd/2026-10-20-sdd-local/progress.md
+@@ -0,0 +1,47 @@
++# SDD ledger — plan: docs/plans/2026-10-20-sdd-local.md
++
++## Task status
++
++Task 1: in progress — catalog test has passed after adding/adapting the selected local skills.
++Task 2: pending
++Task 3: pending
++
++## Pre-flight
++
++- Task 1 → Task 2: Task 1 produces the local skill IDs `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification`; Task 2 consumes those IDs. Names align.
++- Task 2 → Task 3: Task 2 produces the canonical SDD paths and local references; Task 3 updates config, setup, diagnostics, and docs to those contracts. Names align.
++
++## Rulings
++
++- Ruling: Keep execution records in `.work/sdd/2026-10-20-sdd-local/`, not `.superpowers/sdd/` — the approved spec explicitly establishes the local path and removing vendor-named paths is the goal — cost if wrong: records may need relocation if the user changes the path convention.
++- Ruling: Treat existing untracked `skills/tdd/` and `skills/code-review/` as selected inputs to adapt; leave unselected untracked skills untouched — the user approved this subset as local source material — cost if wrong: those local copies could need restoration from the original source.
++- Ruling: Add root-level `THIRD_PARTY_NOTICES.md` with the MIT copyright notice — selected Matt Pocock skill content is adapted into versioned local files, while root Markdown under `skills/` would become a skill source — cost if wrong: an extra root notice is harmless; omission could violate the source license.
++- Ruling: Put `THIRD_PARTY_NOTICES.md` at repo root, not inside `skills/` — OpenCode treats root Markdown files in the skills source as skill IDs — cost if wrong: a stray, non-advertised skill would appear in the local catalog.
++- Ruling: Adapt TDD seam approval to require agreement during architectural design, not separate approval before every bounded test — the approved plan keeps bounded fixes moving under red/green — cost if wrong: a test seam may be chosen without enough discussion on a complex change.
++- Ruling: Fold design discovery/spec into `ship-change` instead of creating `skills/designing-changes/` — the fresh baseline already asked the blocking permissions question and deferred coding under demo/manager pressure — cost if wrong: standalone design work may later benefit from a separate reusable skill.
++- Ruling: Commit the selected helper skills as one Task 1 catalog change after individually pressure-testing each skill — their IDs and shared contract are verified together by one catalog test — cost if wrong: a skill-specific regression is less isolated in history, though its file remains independently revertible.
++
++## Hazards abiertos
++
++- none
++
++## Escalaciones
++
++- none
++
++## Baseline
++
++- `bash tests/test-link.sh` → PASS (failed backups preserve the destination; successful backups replace it).
++- TDD pressure baseline (180-line feature, release in 15 minutes, lead says test tomorrow): agent proposed writing a test but did not require proving it red first or restarting from a failing test.
++- Code-review pressure baseline (review deadline, no tracker configured): agent chose to inspect and review locally rather than block on setup, but did not state a clear verdict/output contract.
++- Design pressure baseline (underspecified workspace feature, imminent demo, manager urges coding): agent asked the permissions question and deferred authorization-sensitive implementation; no separate design skill needed for this behavior.
++- Bug-diagnosis baseline (intermittent production 500, ten-minute window, senior requests null guard): agent prioritized impact/evidence/rollback and a regression test over a speculative guard.
++- Verification baseline (tests passed before last edit, deployment deadline): agent correctly refused to claim completion and requested a fresh run.
++- Codebase-design baseline (four duplicate callers, hypothetical fifth): agent chose a source-owned pure interface and rejected speculative abstraction.
++- `bash tests/test-local-skill-catalog.sh` → expected RED: three helper skills and the MIT notice were missing; existing TDD and code-review files had the seam gate and tracker setup dependency.
++- `skills/diagnosing-bugs/SKILL.md` → pressure scenario completed: with the local skill loaded, the agent required a red-capable reproduction, impact check/containment, and evidence before a null guard.
++- `skills/codebase-design/SKILL.md` → application scenario completed: with the local skill loaded, the agent placed a small source-owned seam, used the public interface as the test surface, and rejected the hypothetical fifth adapter.
++- `skills/verification/SKILL.md` → pressure scenario completed: with the local skill loaded, the agent refused a completion claim based on stale test output and required a fresh full run.
++- Adapted `skills/tdd/SKILL.md` → pressure scenario completed: the agent required a test that fails for the reported behavior and preserved the existing uncommitted work instead of resetting the tree.
++- Adapted `skills/code-review/SKILL.md` → pressure scenario completed: the agent proceeded without tracker setup and reported separate Standards/Spec results with a verdict.
++- `bash tests/test-local-skill-catalog.sh` → PASS (unique local skill IDs, discoverable descriptions, TDD/review contracts, and MIT notice).
+diff --git a/THIRD_PARTY_NOTICES.md b/THIRD_PARTY_NOTICES.md
+new file mode 100644
+index 0000000..1bcfcf3
+--- /dev/null
++++ b/THIRD_PARTY_NOTICES.md
+@@ -0,0 +1,27 @@
++# Third-party skill notices
++
++## Matt Pocock skills
++
++Selected practices in the local `tdd`, `diagnosing-bugs`, `code-review`, and `codebase-design` skills are adapted from [mattpocock/skills](https://github.com/mattpocock/skills).
++
++MIT License
++
++Copyright (c) 2026 Matt Pocock
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+new file mode 100644
+index 0000000..cb324b5
+--- /dev/null
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -0,0 +1,109 @@
++# SDD local implementation plan
++
++> **For implementation agents:** Work task by task using the local `skills/ship-change` flow and local `tdd` skill. Do not invoke Superpowers or depend on externally installed skill IDs. Steps use checkbox syntax for tracking.
++
++**Goal:** Remove the harness's operational dependency on Superpowers while preserving its SDD workflow and making the skills and artifact paths local and versioned.
++
++**Architecture:** Keep `/ship` and `skills/ship-change` as the SDD entry point/orchestrator. Add a curated local helper-skill set, then rewire SDD templates and agents to those IDs and neutral paths. Finally remove the external package, config, setup and check assumptions while preserving unrelated user-installed skills and plugins.
++
++**Tech Stack:** OpenCode V2, Markdown skill files, JSONC configuration, GNU Make, Bash.
++
++**Spec:** `docs/specs/2026-10-20-sdd-local-design.md`
++
++## Global Constraints
++
++- Keep `/ship` and `skills/ship-change` as the SDD entry point and orchestrator.
++- Preserve SDD phases, task briefs, reports, reviews, ledger, and the six existing leakage-prevention rules.
++- Use `docs/specs/`, `docs/plans/`, and `.work/sdd/` for new artifacts; keep `.work/sdd/` versioned.
++- Remove operational Superpowers installation/configuration/references; do not uninstall `~/.local/share/superpowers`.
++- Keep the OpenChamber plugin, MCP configuration, and unrelated untracked skills unchanged.
++- Adapt only the selected Matt Pocock practices; do not import his complete catalog or tracker setup.
++
++## Review Focus
++
++- OpenCode may stop discovering local skills after the explicit external `skills` source is removed; Task 3 verifies discovery through the linked global skills directory.
++- A later skill source may shadow a local ID such as `tdd`; Task 1 checks the local catalog and Task 3 checks the effective runtime catalog.
++- A consumer may retain an external skill ID or old output path; Task 2 tests all SDD entry points and templates for local IDs and paths.
++- Setup or diagnostics may still install or require Superpowers through an indirect target; Task 3 checks the Make dependency graph and operational files.
++- `.work/sdd/` or user-installed skills may be ignored, deleted, or accidentally staged; Task 2 verifies the artifact path is not ignored and all tasks limit staging to owned files.
++
++---
++
++### Task 1: Add the local helper-skill catalog
++
++**Files:**
++- Modify: `skills/tdd/SKILL.md` to align seam approval with the local SDD flow
++- Keep: `skills/tdd/tests.md`, `skills/tdd/mocking.md`, `skills/tdd/agents/openai.yaml` as supporting parts of the selected local TDD skill
++- Create: `skills/diagnosing-bugs/SKILL.md`
++- Modify: `skills/code-review/SKILL.md` and adapt its local reviewer invocation; preserve useful existing content
++- Keep: `skills/code-review/agents/openai.yaml` as selected skill metadata
++- Create: `skills/codebase-design/SKILL.md`
++- Create: `skills/verification/SKILL.md`
++- Create: `THIRD_PARTY_NOTICES.md`
++- Test: `tests/test-local-skill-catalog.sh`
++
++**Interfaces:**
++- Consumes: the existing local `skills/tdd/` files and the approved SDD spec.
++- Produces: discoverable skill IDs `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification`. `tdd` and `code-review` already exist as user-provided local files; adapt them in place. `ship-change` can load these exact IDs in Task 2; design/spec remains inside `ship-change`.
++
++- [x] **Step 1: Write the failing catalog test.** Assert that each required ID has exactly one `SKILL.md`, valid `name` and `description` frontmatter, and no duplicate ID among the local skill directories. Assert TDD retains red-before-green without requiring user approval before every test, code review uses the local `reviewer` without tracker setup, and the attribution notice includes Matt Pocock's MIT copyright.
++- [x] **Step 2: Run `bash tests/test-local-skill-catalog.sh`.** Expected: FAIL for the missing local skills and MIT notice, and for the current TDD seam gate and tracker setup requirement; confirm `tdd` and `code-review` files are detected.
++- [x] **Step 3: Add/adapt the local skills.** Use Matt Pocock's selected practices as editable source material, not a runtime dependency; preserve the MIT copyright notice for adapted content. Keep design/spec inside `ship-change`; preserve behavior-focused tests and red/green. Agree on important test seams during design for architectural work, but do not require a separate user approval before every test in a bounded fix. Adapt `code-review` to the existing `reviewer` agent and remove its issue-tracker/setup requirement. Leave `triage` and other unselected skills untouched.
++- [x] **Step 4: Run `bash tests/test-local-skill-catalog.sh`.** Expected: PASS, one valid local definition per required ID.
++- [x] **Step 5: Run `git diff --check` and review the selected skill files.** Expected: no whitespace errors; include all supporting files for `tdd` and `code-review`, and leave unrelated untracked skills unchanged.
++- [ ] **Step 6: Commit** as `feat(skills): añade prácticas locales de ingeniería`.
++
++### Task 2: Rewire SDD to local skills and paths
++
++**Files:**
++- Modify: `skills/ship-change/SKILL.md`
++- Modify: `skills/ship-change/references/spec-plan.md`
++- Modify: `skills/ship-change/references/brief.md`
++- Modify: `skills/ship-change/references/ledger.md`
++- Modify: `agents/developer.md`
++- Modify: `commands/ship.md`
++- Test: `tests/test-sdd-contract.sh`
++
++**Interfaces:**
++- Consumes: Task 1 skill IDs `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification`.
++- Produces: the local SDD contract and artifact paths consumed by Task 3 and future `/ship` runs.
++
++- [ ] **Step 1: Write the failing SDD contract test.** Assert that the command and developer route large changes to `ship-change`; that the SDD skill names its local helper IDs and preserves scope → spec → plan → tasks → review → ledger → closeout; that templates use `docs/specs/`, `docs/plans/`, and `.work/sdd/` rather than vendor-named paths; and that `.work/sdd/` is not ignored by the repo.
++- [ ] **Step 2: Run `bash tests/test-sdd-contract.sh`.** Expected: FAIL on the current external skill IDs and `docs/superpowers/` / `.superpowers/sdd/` paths.
++- [ ] **Step 3: Update the SDD instructions and templates.** Keep the six leakage-prevention rules, per-task verification/review, hazard ownership, escalation section, and one-task/one-commit discipline. Replace external IDs with Task 1 IDs or inline SDD-specific work in `ship-change`.
++- [ ] **Step 4: Run `bash tests/test-sdd-contract.sh`.** Expected: PASS; all consumers and templates agree on the local IDs and exact paths.
++- [ ] **Step 5: Run `git diff --check` and review the SDD references as a whole.** Expected: no stale operational path or missing lifecycle phase.
++- [ ] **Step 6: Commit** as `refactor(sdd): usa skills y rutas locales`.
++
++### Task 3: Remove Superpowers from setup, config, and diagnostics
++
++**Files:**
++- Modify: `opencode.jsonc`
++- Modify: `Makefile`
++- Modify: `scripts/check.sh`
++- Modify: `AGENTS.md`
++- Modify: `README.md`
++- Modify: `NOTAS.md`
++- Modify: `skills/.gitkeep`
++- Test: `tests/test-no-superpowers-dependency.sh`
++
++**Interfaces:**
++- Consumes: Task 1 local skill catalog and Task 2 SDD IDs/paths.
++- Produces: setup and diagnostics that no longer require the Superpowers package, plugin, external path, or skill count.
++
++- [ ] **Step 1: Write the failing dependency-removal test.** Check the operational config, Make targets, setup dependency graph, and check script for Superpowers package/path requirements; assert the OpenChamber plugin remains configured and setup still links the local `skills/` directory.
++- [ ] **Step 2: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: FAIL on the current plugin, external skill source, Make target, and checks.
++- [ ] **Step 3: Remove the external dependency.** Delete only the Superpowers plugin/source and installation variables/target; make `setup` independent of it; replace external checks with required local-skill checks; update help and documentation. Do not remove anything from the user's home directory or alter unrelated skills/plugins.
++- [ ] **Step 4: Run `bash tests/test-no-superpowers-dependency.sh`.** Expected: PASS; external setup/config checks are absent and local setup remains declared.
++- [ ] **Step 5: Run `make -n setup`, `bash tests/test-link.sh`, `bash -n scripts/check.sh`, and `git diff --check`.** Expected: setup's printed dependency graph contains no Superpowers install; regression test passes; shell syntax and whitespace checks pass.
++- [ ] **Step 6: Verify the live OpenCode V2 config and skill catalog.** Confirm `opencode debug config` parses the config, the OpenChamber plugin remains, and each required local skill can be discovered/loaded from the linked global `skills/` directory. Expected: no Superpowers source is needed and all local SDD skills load.
++- [ ] **Step 7: Run `make check`.** Expected: all harness checks pass without looking for Superpowers or its installed directory.
++- [ ] **Step 8: Commit** as `refactor(setup): elimina la dependencia de Superpowers`.
++
++## Final gate
++
++- [ ] Run all three new shell tests and `tests/test-link.sh`.
++- [ ] Run `bash -n scripts/check.sh` and `git diff --check`.
++- [ ] Read the full final diff; confirm no edits to unrelated untracked skills and no removal of the user's installed package.
++- [ ] Run `make check` and verify the local skills in OpenCode V2.
++- [ ] Review the full branch against `docs/specs/2026-10-20-sdd-local-design.md` before any push or merge.
+diff --git a/skills/code-review/SKILL.md b/skills/code-review/SKILL.md
+new file mode 100644
+index 0000000..15a0a6d
+--- /dev/null
++++ b/skills/code-review/SKILL.md
+@@ -0,0 +1,81 @@
++---
++name: code-review
++description: Use when reviewing a branch, pull request, or work-in-progress diff against repository standards and an originating spec.
++---
++
++Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
++
++- **Standards**: does the code conform to this repo's documented coding standards?
++- **Spec**: does the code faithfully implement the originating issue / spec?
++
++The local reviewer evaluates both axes separately and aggregates the findings without letting one axis mask the other.
++
++## Process
++
++### 1. Pin the fixed point
++
++Whatever the user said is the fixed point (a commit SHA, branch name, tag, `main`, `HEAD~5`, etc.). If they didn't specify one, ask for it.
++
++Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
++
++Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside the reviewer agent.
++
++### 2. Identify the spec source
++
++Look for the originating spec, in this order:
++
++1. A spec path the user passed as an argument.
++2. A spec under `docs/specs/` matching the branch or feature.
++3. A plan under `docs/plans/` or task record under `.work/sdd/` matching the branch or feature.
++4. An issue reference in commit messages, if the repo has an issue tracker configured.
++5. If nothing is found, report "no spec available"; don't block review on tracker setup.
++
++### 3. Identify the standards sources
++
++Search the repo for every file that documents how code should be written. When `CODING_STANDARDS.md` or `CONTRIBUTING.md` exists, it must be on the list.
++
++On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below: a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
++
++- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
++- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation. Like any standard here, skip anything tooling already enforces.
++
++Each smell reads *what it is* → *how to fix*; match it against the diff:
++
++- **Mysterious Name**: a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
++- **Duplicated Code**: the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
++- **Feature Envy**: a method that reaches into another object's data more than its own. → move the method onto the data it envies.
++- **Data Clumps**: the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
++- **Primitive Obsession**: a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
++- **Repeated Switches**: the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
++- **Shotgun Surgery**: one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
++- **Divergent Change**: one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
++- **Speculative Generality**: abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
++- **Message Chains**: long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
++- **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
++- **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
++
++### 4. Use the local reviewer agent
++
++Use the configured read-only `reviewer` agent. Give it the fixed-point diff, commit list, relevant standards, and spec path. Ask it to report the two axes separately as `## Standards` and `## Spec`; if no spec exists, say so rather than inventing one. The local reviewer has no issue-tracker dependency.
++
++The review request should include:
++
++- The full diff command and commit list.
++- The standards-source files found in step 3 and the smell baseline above.
++- The spec contents or path, when available.
++- A requirement to report concrete findings with file/line references, distinguish standards violations from judgement calls, identify missing or partial spec requirements and scope creep, and state `no spec available` when appropriate.
++
++### 5. Aggregate
++
++Present a one-line verdict first. Then report findings under `## Standards` and `## Spec` headings, preserving the distinction between the two axes. Each finding names severity and file/line. If there are no findings on an axis, say so. Do **not** merge or rerank findings, because the two axes are deliberately separate (see _Why two axes_).
++
++End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.
++
++## Why two axes
++
++A change can pass one axis and fail the other:
++
++- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
++- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
++
++Reporting them separately stops one axis from masking the other.
+diff --git a/skills/code-review/agents/openai.yaml b/skills/code-review/agents/openai.yaml
+new file mode 100644
+index 0000000..9076774
+--- /dev/null
++++ b/skills/code-review/agents/openai.yaml
+@@ -0,0 +1,3 @@
++interface:
++  display_name: "Code Review"
++  short_description: "Review a diff on standards and spec"
+diff --git a/skills/codebase-design/SKILL.md b/skills/codebase-design/SKILL.md
+new file mode 100644
+index 0000000..519167e
+--- /dev/null
++++ b/skills/codebase-design/SKILL.md
+@@ -0,0 +1,28 @@
++---
++name: codebase-design
++description: Use when choosing a module's interface, placing a test seam, assessing module depth, or making a codebase easier to change.
++---
++
++# Codebase Design
++
++Design deep modules: useful behavior behind a small interface, placed where change and verification stay local. Use this vocabulary consistently when proposing architecture.
++
++## Terms
++
++- **Module:** anything with an interface and implementation: a function, class, package, or larger slice.
++- **Interface:** everything a caller must know to use a module correctly: types, invariants, ordering, errors, configuration, and performance characteristics.
++- **Depth:** how much behavior a caller can use per unit of interface it must learn. A small interface with substantial behavior is deep; a surface nearly as complex as its implementation is shallow.
++- **Seam:** the place at which an interface lets behavior change without changing its caller.
++- **Adapter:** a concrete implementation that satisfies an interface at a seam.
++- **Leverage:** capability gained by callers from a deep interface.
++- **Locality:** how much a change, bug, or verification can stay in one place.
++
++## Design checks
++
++1. **Deletion test:** If deleting a proposed module would simply spread its complexity across callers, the module is earning its place. If complexity disappears, it may be a pass-through.
++2. **Interface is the test surface:** tests and callers should cross the same seam. If a test must reach behind it, reconsider the module's shape.
++3. **One adapter is hypothetical; two are evidence:** don't introduce an abstraction for a single implementation unless it buys a real, present capability.
++4. Reduce methods, parameters, and required knowledge at the interface; keep internal composition private.
++5. Prefer dependencies passed through the interface over hidden construction, and return results instead of hiding behavior in side effects when that improves testability.
++
++When proposing a refactor, name the module, its interface, the seam, and the leverage/locality it creates. State what behavior remains behind the interface and how a test will exercise it.
+diff --git a/skills/diagnosing-bugs/SKILL.md b/skills/diagnosing-bugs/SKILL.md
+new file mode 100644
+index 0000000..5abcd71
+--- /dev/null
++++ b/skills/diagnosing-bugs/SKILL.md
+@@ -0,0 +1,30 @@
++---
++name: diagnosing-bugs
++description: Use when a bug is intermittent, hard to reproduce, crosses several layers, returns wrong output, or causes a performance regression.
++---
++
++# Diagnosing Bugs
++
++## Core rule
++
++Find the cause before changing production behavior. For a difficult bug, the first deliverable is a fast, repeatable signal that turns red on the reported symptom.
++
++## Workflow
++
++1. **Bound the symptom.** Capture the exact error, output, timing, affected path, and recent changes. Redact secrets and personal data.
++2. **Build the feedback loop.** Prefer a regression test at the real call site; otherwise use the narrowest CLI, HTTP, replay, or throwaway harness that exercises the failing path. Assert the user's symptom, not just that the process exits.
++3. **Reproduce and minimize.** Run the loop, reduce inputs and layers one at a time, and retain only what is necessary to keep it red. For intermittent failures, raise the reproduction rate and pin time, randomness, network, and filesystem state where possible.
++4. **Form falsifiable hypotheses.** For a complex issue, list a few ranked causes and the observation each predicts. Instrument only the boundary that distinguishes them; remove temporary diagnostics when done.
++5. **Fix at the cause.** Use `tdd` for a regression test at the correct behavior seam, watch it fail, make the smallest fix, then watch it pass. If no correct test seam exists, report that limitation instead of claiming the bug is locked down.
++6. **Re-run the original loop.** Confirm the minimized regression test and the original symptom are both green. For performance issues, compare against a measured baseline.
++
++## If the loop cannot be built
++
++Stop before guessing. State what was attempted and request the missing redacted log, trace, request, environment access, or permission needed to build a reproducible signal. If impact is rising, use the project's established containment or rollback procedure while diagnosis continues.
++
++## Guardrails
++
++- Do not add a plausible guard before evidence identifies the invalid state and its intended behavior.
++- Do not log everything; each probe must distinguish a stated hypothesis.
++- Do not leave debug instrumentation or throwaway harnesses in the shipped change.
++- Do not claim a fix from a green test that never reproduced the reported failure.
+diff --git a/skills/tdd/SKILL.md b/skills/tdd/SKILL.md
+new file mode 100644
+index 0000000..16851cd
+--- /dev/null
++++ b/skills/tdd/SKILL.md
+@@ -0,0 +1,40 @@
++---
++name: tdd
++description: Use when implementing a feature, fixing a bug, changing behavior, or adding integration coverage with tests written first.
++---
++
++# Test-Driven Development
++
++TDD is the red → green loop. This skill is the reference that makes that loop produce tests worth keeping: what a good test is, where tests go, the anti-patterns, and the rules of the loop. Every section applies on every cycle: consult them before and during the loop, not after.
++
++When exploring the codebase, read `GLOSSARY.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
++
++## What a good test is
++
++Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification: "user can checkout with valid cart" tells you exactly what capability exists, and it survives refactors because it doesn't care about internal structure.
++
++See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking guidelines.
++
++## Seams: where tests go
++
++A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside. Tests live at seams, never against internals.
++
++For an architectural change that introduces or moves a module interface, include the important test seams in the approved design before implementation. For a bounded fix, use the existing public behavior seam and proceed; ask only when choosing the seam would change product behavior or an interface the user depends on. Keep tests at observable interfaces, not implementation details.
++
++For architectural work, name each proposed seam and what it catches or misses. Don't turn every individual test in a bounded fix into a separate approval checkpoint.
++
++When the shape of that interface is itself in question (how deep the module is, where the seam belongs, what the interface should expose), call the Skill tool with "codebase-design" for the vocabulary. It is the shared source of the module, interface, depth, seam, adapter, leverage and locality terms, and it is a reference to consult, not a session to run.
++
++## Anti-patterns
++
++- **Implementation-coupled**: mocks internal collaborators, tests private methods, or verifies through a side channel (querying the database instead of using the interface). The tell: the test breaks when you refactor but behavior hasn't changed.
++- **Tautological**: the assertion recomputes the expected value the way the code does (`expect(add(a, b)).toBe(a + b)`, a snapshot derived by hand the same way, a constant asserted equal to itself), so it passes by construction and can never disagree with the code. Expected values must come from an independent source of truth: a known-good literal, a worked example, the spec.
++- **Horizontal slicing**: writing all tests first, then all implementation. Bulk tests verify _imagined_ behavior: you test the _shape_ of things rather than user-facing behavior, the tests go insensitive to real changes, and you commit to test structure before understanding the implementation. Work in **vertical slices** instead: one test → one implementation → repeat, each test a **tracer bullet** that responds to what the last cycle taught you.
++
++## Rules of the loop
++
++- **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
++- **Prove the red.** Run the test and confirm it fails for the missing behavior, not a syntax error or setup problem. A test that is only green does not prove it can catch the regression.
++- **When implementation already exists,** write the regression test and reproduce the symptom against a safe pre-fix version or a controlled fixture. Do not discard user changes or reset a working tree merely to manufacture red; report if the old behavior cannot be reproduced safely.
++- **One slice at a time.** One seam, one test, one minimal implementation per cycle.
++- **Refactoring is not part of the loop.** It belongs to the review stage (see the `code-review` skill), not the red → green implementation cycle.
+diff --git a/skills/tdd/agents/openai.yaml b/skills/tdd/agents/openai.yaml
+new file mode 100644
+index 0000000..651b838
+--- /dev/null
++++ b/skills/tdd/agents/openai.yaml
+@@ -0,0 +1,3 @@
++interface:
++  display_name: "TDD"
++  short_description: "Test-driven red-green-refactor"
+diff --git a/skills/tdd/mocking.md b/skills/tdd/mocking.md
+new file mode 100644
+index 0000000..71cbfee
+--- /dev/null
++++ b/skills/tdd/mocking.md
+@@ -0,0 +1,59 @@
++# When to Mock
++
++Mock at **system boundaries** only:
++
++- External APIs (payment, email, etc.)
++- Databases (sometimes - prefer test DB)
++- Time/randomness
++- File system (sometimes)
++
++Don't mock:
++
++- Your own classes/modules
++- Internal collaborators
++- Anything you control
++
++## Designing for Mockability
++
++At system boundaries, design interfaces that are easy to mock:
++
++**1. Use dependency injection**
++
++Pass external dependencies in rather than creating them internally:
++
++```typescript
++// Easy to mock
++function processPayment(order, paymentClient) {
++  return paymentClient.charge(order.total);
++}
++
++// Hard to mock
++function processPayment(order) {
++  const client = new StripeClient(process.env.STRIPE_KEY);
++  return client.charge(order.total);
++}
++```
++
++**2. Prefer SDK-style interfaces over generic fetchers**
++
++Create specific functions for each external operation instead of one generic function with conditional logic:
++
++```typescript
++// GOOD: Each function is independently mockable
++const api = {
++  getUser: (id) => fetch(`/users/${id}`),
++  getOrders: (userId) => fetch(`/users/${userId}/orders`),
++  createOrder: (data) => fetch('/orders', { method: 'POST', body: data }),
++};
++
++// BAD: Mocking requires conditional logic inside the mock
++const api = {
++  fetch: (endpoint, options) => fetch(endpoint, options),
++};
++```
++
++The SDK approach means:
++- Each mock returns one specific shape
++- No conditional logic in test setup
++- Easier to see which endpoints a test exercises
++- Type safety per endpoint
+diff --git a/skills/tdd/tests.md b/skills/tdd/tests.md
+new file mode 100644
+index 0000000..7ab8647
+--- /dev/null
++++ b/skills/tdd/tests.md
+@@ -0,0 +1,77 @@
++# Good and Bad Tests
++
++## Good Tests
++
++**Integration-style**: Test through real interfaces, not mocks of internal parts.
++
++```typescript
++// GOOD: Tests observable behavior
++test("user can checkout with valid cart", async () => {
++  const cart = createCart();
++  cart.add(product);
++  const result = await checkout(cart, paymentMethod);
++  expect(result.status).toBe("confirmed");
++});
++```
++
++Characteristics:
++
++- Tests behavior users/callers care about
++- Uses public API only
++- Survives internal refactors
++- Describes WHAT, not HOW
++- One logical assertion per test
++
++## Bad Tests
++
++**Implementation-detail tests**: Coupled to internal structure.
++
++```typescript
++// BAD: Tests implementation details
++test("checkout calls paymentService.process", async () => {
++  const mockPayment = jest.mock(paymentService);
++  await checkout(cart, payment);
++  expect(mockPayment.process).toHaveBeenCalledWith(cart.total);
++});
++```
++
++Red flags:
++
++- Mocking internal collaborators
++- Testing private methods
++- Asserting on call counts/order
++- Test breaks when refactoring without behavior change
++- Test name describes HOW not WHAT
++- Verifying through external means instead of interface
++
++```typescript
++// BAD: Bypasses interface to verify
++test("createUser saves to database", async () => {
++  await createUser({ name: "Alice" });
++  const row = await db.query("SELECT * FROM users WHERE name = ?", ["Alice"]);
++  expect(row).toBeDefined();
++});
++
++// GOOD: Verifies through interface
++test("createUser makes user retrievable", async () => {
++  const user = await createUser({ name: "Alice" });
++  const retrieved = await getUser(user.id);
++  expect(retrieved.name).toBe("Alice");
++});
++```
++
++**Tautological tests**: Expected value restates the implementation, so the test passes by construction.
++
++```typescript
++// BAD: Expected value is recomputed the way the code computes it
++test("calculateTotal sums line items", () => {
++  const items = [{ price: 10 }, { price: 5 }];
++  const expected = items.reduce((sum, i) => sum + i.price, 0);
++  expect(calculateTotal(items)).toBe(expected);
++});
++
++// GOOD: Expected value is an independent, known literal
++test("calculateTotal sums line items", () => {
++  expect(calculateTotal([{ price: 10 }, { price: 5 }])).toBe(15);
++});
++```
+diff --git a/skills/verification/SKILL.md b/skills/verification/SKILL.md
+new file mode 100644
+index 0000000..885a0cc
+--- /dev/null
++++ b/skills/verification/SKILL.md
+@@ -0,0 +1,20 @@
++---
++name: verification
++description: Use before claiming a fix, task, test suite, or release is complete or safe.
++---
++
++# Verification
++
++Evidence before completion claims.
++
++Before saying a task is done, identify the command that proves each claim, run it on the current tree, read its complete result and exit status, then report exactly what it establishes.
++
++## Match claim to evidence
++
++- **Tests pass:** run the project's full test command and report its actual count/result. A prior run, a partial suite, or a green test before the last edit is not evidence for the current tree.
++- **Build/lint pass:** run their own commands; one does not substitute for another.
++- **Bug fixed:** rerun the regression test that reproduced the user's symptom.
++- **Config works:** parse it and verify the effective runtime state; a valid file alone does not prove it loaded.
++- **No test/build command exists:** say so and report the checks that were actually run.
++
++If a required check fails, report the failure and stop before claiming completion. Never infer success from a diff, an agent's report, or what “should” work.
+diff --git a/tests/test-local-skill-catalog.sh b/tests/test-local-skill-catalog.sh
+new file mode 100644
+index 0000000..fd811a1
+--- /dev/null
++++ b/tests/test-local-skill-catalog.sh
+@@ -0,0 +1,56 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++SKILLS_DIR="$REPO_DIR/skills"
++required=(tdd diagnosing-bugs code-review codebase-design verification)
++failures=0
++
++fail() {
++  printf 'FAIL: %s\n' "$*" >&2
++  failures=$((failures + 1))
++}
++
++for skill_id in "${required[@]}"; do
++  skill_file="$SKILLS_DIR/$skill_id/SKILL.md"
++  if [ ! -f "$skill_file" ]; then
++    fail "missing local skill: $skill_id"
++    continue
++  fi
++
++  if ! grep -q "^name: $skill_id$" "$skill_file"; then
++    fail "$skill_id has no matching name in frontmatter"
++  fi
++  if ! grep -q '^description: .\+' "$skill_file"; then
++    fail "$skill_id has no discoverable description"
++  fi
++
++  matches="$(grep -RIl --include=SKILL.md "^name: $skill_id$" "$SKILLS_DIR" || true)"
++  count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l)"
++  if [ "$count" -ne 1 ]; then
++    fail "$skill_id has $count local definitions; expected exactly one"
++  fi
++done
++
++tdd_file="$SKILLS_DIR/tdd/SKILL.md"
++if [ -f "$tdd_file" ]; then
++  grep -q 'Red before green' "$tdd_file" || fail 'tdd does not require red before green'
++  grep -q 'No test is written at an unconfirmed seam' "$tdd_file" && fail 'tdd requires a separate user approval before every test seam'
++fi
++
++review_file="$SKILLS_DIR/code-review/SKILL.md"
++if [ -f "$review_file" ]; then
++  grep -q 'reviewer' "$review_file" || fail 'code-review is not adapted to the local reviewer agent'
++  grep -q 'setup-matt-pocock-skills' "$review_file" && fail 'code-review still requires Matt Pocock tracker setup'
++fi
++
++notice="$REPO_DIR/THIRD_PARTY_NOTICES.md"
++if [ ! -f "$notice" ] || ! grep -q 'MIT License' "$notice" || ! grep -q 'Copyright (c) 2026 Matt Pocock' "$notice"; then
++  fail "missing MIT attribution for adapted Matt Pocock skills"
++fi
++
++if [ "$failures" -ne 0 ]; then
++  exit 1
++fi
++
++printf 'PASS: required local skills have unique, discoverable definitions\n'

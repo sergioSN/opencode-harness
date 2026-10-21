@@ -1,0 +1,95 @@
+# SDD ledger — plan: docs/plans/2026-10-20-sdd-local-plan.md
+
+## Task status
+
+Task 1: complete (commits 3888600..b78ae28, tests: `bash tests/test-local-skill-catalog.sh` → PASS)
+Task 2: complete (commits b78ae28..ead78ae, tests: SDD contract + local skill catalog + link regression → PASS)
+Task 3: complete (commits ead78ae..cdb80ac, tests: `bash tests/test-agent-commit-example.sh` → PASS)
+Task 4: complete (commit ad5436b, setup/config and `make check` → PASS)
+Task 5: complete (commit d3b3caf plus source-precedence follow-up, tests: parser 5/5 + dependency check + `make check` → PASS)
+Task 6: complete (commit ffcdd84, tests: optional docs + dependency check → PASS)
+Task 7: complete (commits 79676bf, 03b7b07; parser suite 6/6, malformed-field mutation → RED)
+Task 8: complete (commits faf2c0f, b80ffce, 80804fc, e421ae1; contract and mutation tests PASS; final review clean)
+Task 9: in progress (primary-range follow-up after review of commit eb8a9d4)
+
+## Pre-flight
+
+- Task 1 → Task 2: Task 1 produces the local skill IDs `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification`; Task 2 consumes those IDs. Names align.
+- Task 2 → Task 3: Task 2 produces the canonical SDD paths and local references; Task 3 updates config, setup, diagnostics, and docs to those contracts. Names align.
+- Task 3 → Task 4: Task 3 removes the dependency-specific example; Task 4's operational-reference test requires all user-facing docs to be neutral. Names align.
+- Task 4 → Task 5: Task 4 verifies local skill files; Task 5 verifies the effective runtime catalog for the same IDs. Names align.
+
+## Rulings
+
+- Ruling: Keep execution records in `.work/sdd/2026-10-20-sdd-local/`, not `.superpowers/sdd/` — the approved spec explicitly establishes the local path and removing vendor-named paths is the goal — cost if wrong: records may need relocation if the user changes the path convention.
+- Ruling: Treat existing untracked `skills/tdd/` and `skills/code-review/` as selected inputs to adapt; leave unselected untracked skills untouched — the user approved this subset as local source material — cost if wrong: those local copies could need restoration from the original source.
+- Ruling: Add root-level `THIRD_PARTY_NOTICES.md` with the MIT copyright notice — selected Matt Pocock skill content is adapted into versioned local files, while root Markdown under `skills/` would become a skill source — cost if wrong: an extra root notice is harmless; omission could violate the source license.
+- Ruling: Put `THIRD_PARTY_NOTICES.md` at repo root, not inside `skills/` — OpenCode treats root Markdown files in the skills source as skill IDs — cost if wrong: a stray, non-advertised skill would appear in the local catalog.
+- Ruling: Adapt TDD seam approval to require agreement during architectural design, not separate approval before every bounded test — the approved plan keeps bounded fixes moving under red/green — cost if wrong: a test seam may be chosen without enough discussion on a complex change.
+- Ruling: Fold design discovery/spec into `ship-change` instead of creating `skills/designing-changes/` — the fresh baseline already asked the blocking permissions question and deferred coding under demo/manager pressure — cost if wrong: standalone design work may later benefit from a separate reusable skill.
+- Ruling: Commit the selected helper skills as one Task 1 catalog change after individually pressure-testing each skill — their IDs and shared contract are verified together by one catalog test — cost if wrong: a skill-specific regression is less isolated in history, though its file remains independently revertible.
+- Ruling: Split the `AGENTS.md` example cleanup into its own task/commit — the repository's global instructions prohibit changing AGENTS.md as a drive-by — cost if wrong: one extra atomic commit and task.
+- Ruling: Fix the two Make recipe indentation errors found by `make -n setup` before accepting the dependency-removal test — the recipes had spaces instead of tabs — cost if wrong: setup would stop at parse time.
+- Ruling: Keep the earlier user-approved model/plugin commits on their existing branch; review this SDD feature from `d51c2d0` — those commits predate and are separate from the approved SDD spec — cost if wrong: a future PR from this branch to `main` still includes that earlier history.
+- Ruling: Add an API-backed runtime skill check to `make check` — review found static file checks did not prove OpenCode's effective catalog — cost if wrong: `make check` depends on the documented V2 `/api/skill` route.
+- Ruling: Document Impeccable and Matt Pocock skills as optional companions, not setup requirements — user requested references for existing installations while keeping the repo usable for newcomers — cost if wrong: users may overestimate how much the local workflow relies on these external catalogs.
+
+## Hazards abiertos
+
+- none
+
+## Escalaciones
+
+- none
+
+## Baseline
+
+- `bash tests/test-link.sh` → PASS (failed backups preserve the destination; successful backups replace it).
+- TDD pressure baseline (180-line feature, release in 15 minutes, lead says test tomorrow): agent proposed writing a test but did not require proving it red first or restarting from a failing test.
+- Code-review pressure baseline (review deadline, no tracker configured): agent chose to inspect and review locally rather than block on setup, but did not state a clear verdict/output contract.
+- Design pressure baseline (underspecified workspace feature, imminent demo, manager urges coding): agent asked the permissions question and deferred authorization-sensitive implementation; no separate design skill needed for this behavior.
+- Bug-diagnosis baseline (intermittent production 500, ten-minute window, senior requests null guard): agent prioritized impact/evidence/rollback and a regression test over a speculative guard.
+- Verification baseline (tests passed before last edit, deployment deadline): agent correctly refused to claim completion and requested a fresh run.
+- Codebase-design baseline (four duplicate callers, hypothetical fifth): agent chose a source-owned pure interface and rejected speculative abstraction.
+- `bash tests/test-local-skill-catalog.sh` → expected RED: three helper skills and the MIT notice were missing; existing TDD and code-review files had the seam gate and tracker setup dependency.
+- `skills/diagnosing-bugs/SKILL.md` → pressure scenario completed: with the local skill loaded, the agent required a red-capable reproduction, impact check/containment, and evidence before a null guard.
+- `skills/codebase-design/SKILL.md` → application scenario completed: with the local skill loaded, the agent placed a small source-owned seam, used the public interface as the test surface, and rejected the hypothetical fifth adapter.
+- `skills/verification/SKILL.md` → pressure scenario completed: with the local skill loaded, the agent refused a completion claim based on stale test output and required a fresh full run.
+- Adapted `skills/tdd/SKILL.md` → pressure scenario completed: the agent required a test that fails for the reported behavior and preserved the existing uncommitted work instead of resetting the tree.
+- Adapted `skills/code-review/SKILL.md` → pressure scenario completed: the agent proceeded without tracker setup and reported separate Standards/Spec results with a verdict.
+- `bash tests/test-local-skill-catalog.sh` → PASS (unique local skill IDs, discoverable descriptions, TDD/review contracts, and MIT notice).
+- `skills/ship-change/SKILL.md` baseline → red: it prescribed vendor-named artifact paths and five external skill IDs.
+- `bash tests/test-sdd-contract.sh` → RED as expected on old paths and IDs; after rewiring, PASS with the local IDs and neutral artifact paths.
+- `bash -n tests/test-sdd-contract.sh`, `git diff --check`, and the legacy-reference scan over SDD consumers → PASS; no stale paths or external skill IDs remain in those entry points.
+- Task 2 pressure scenario with the local `ship-change` skill → PASS: the agent selected `docs/specs/`, `docs/plans/`, `.work/sdd/`, local helper IDs, and the developer/reviewer agents.
+- `bash tests/test-no-superpowers-dependency.sh` → expected RED: Makefile/config/check script and operational docs still refer to the external package, and `check.sh` lacks the required local skill inventory.
+- `bash tests/test-agent-commit-example.sh` → expected RED: the global commit example still says `chore(deps): sube superpowers...`.
+- `bash tests/test-agent-commit-example.sh` → PASS after replacing that example; `git diff --check` → PASS.
+- `make -n setup` initially exposed missing Make recipe tabs at the help summary and upgrade recipe; after correcting them, setup parses and its dependency graph has no external skill install.
+- `bash tests/test-no-superpowers-dependency.sh`, `make -n setup`, `bash -n scripts/check.sh`, `bash -n tests/test-no-superpowers-dependency.sh`, and `git diff --check` → PASS after dependency removal.
+- `make check` → PASS: config parsed, agents and MCPs loaded, six required local skills verified, and all harness checks succeeded.
+- `python3 tests/test_check_skills.py` → 3/3 PASS; `tests/test-no-superpowers-dependency.sh` → PASS with the runtime API assertion; `make check` → PASS and reports all six required IDs from OpenCode's catalog.
+- Task 5 final suite after commit: local-skill, SDD-contract, dependency, agent-example, and link tests passed; parser tests 3/3; `make -n setup`, syntax checks, and `make check` passed.
+- `opencode api skill.list --param 'location[directory]=/home/ubuntu/projects/opencode-harness'` → returned all six required IDs from `/home/ubuntu/.config/opencode/skills`, the linked repo directory.
+- Loaded `ship-change`, `tdd`, `diagnosing-bugs`, `code-review`, `codebase-design`, and `verification` via the skill tool after removal of the external skill source → all six resolved from `~/.config/opencode/skills`.
+- Initial review on `origin/main..HEAD` included prior user-approved model/plugin commits outside this SDD spec and found no automated runtime-discovery check. The SDD review range was narrowed to `d51c2d0`; the runtime finding was fixed in Task 5.
+- Initial `make check` after a service restart briefly missed `developer` in its second catalog query; after waiting four seconds, the direct catalog had `developer` and the full check passed. This matches the documented service warm-up race; no code change was made for it.
+- `bash tests/test-optional-skills-docs.sh` → RED before doc changes; PASS after README/NOTAS links, optional wording, UI scope and local-fallback note were added.
+- Final pre-commit suite: `test-local-skill-catalog.sh`, `test-sdd-contract.sh`, `test-no-superpowers-dependency.sh`, `test-agent-commit-example.sh`, `test-link.sh`, `make -n setup`, `make check`, Bash syntax, and `git diff --check` → all passed.
+- Final reviewer on `d51c2d0..ffcdd84` found one Important Spec issue: runtime catalog validation did not reject a same-ID skill from another source. Fixed by comparing each resolved catalog path with the expected repo-local `SKILL.md`; the shadowing regression test and parser suite pass.
+- `bash tests/test-optional-skills-docs.sh` → RED before docs edits: missing optional catalog links, optional status, fallback statement, architecture-skill mention, and Impeccable UI scope.
+- `bash tests/test-optional-skills-docs.sh` → PASS after README/NOTAS updates; `tests/test-no-superpowers-dependency.sh` also passes, confirming no optional runtime dependency was added.
+- Reviewer recheck on `d51c2d0..ffcdd84` found that the API parser checked IDs but not source paths; a same-ID skill from another catalog could shadow the local copy.
+- TDD for the review fix: the shadow-source regression test failed because the parser did not accept an expected local directory; after path validation, parser tests pass 5/5.
+- `tests/test_check_skills.py` after the review fix → 5/5 PASS; `make check` resolves each required API path to its corresponding repo-local `SKILL.md` through the global symlink.
+- Task 7 malformed-entry test against the committed pre-fix parser → RED (`ValueError not raised`); updated parser → 6/6 PASS.
+- Task 7 review follow-up: reviewer found empty/non-string id/path cases missing; added all four variants and committed as `03b7b07`, parser suite still 6/6 PASS.
+- Task 7 final follow-up review on `79676bf..03b7b07` → clean, no findings; reviewer did not run tests.
+- Task 8 reviewers caught false positives in MCP/link assertions and JSON shape validation; fixed through exact link matching and JSONC object validation. Comment/near-match/array mutation fixtures fail, both actual contract tests pass, and final review on `80804fc..e421ae1` → clean.
+- Final pre-close gate: all seven shell tests PASS; parser tests 6/6; Bash/Python syntax checks pass; `make -n setup` and `make check` pass; artifact completeness test finds briefs, reports, and referenced diff snapshots for Tasks 1–8.
+- Task 9 review correction: added primary implementation snapshots for Tasks 7 and 8 and made `test-sdd-artifacts.sh` require each task's primary range. A fixture missing Task 7's primary range fails with the expected diagnostic; the complete artifact test passes.
+- Final aggregate review on `d51c2d0..1eec050`: Spec clean; two minor Standards findings (duplicate Task 7 report link and ambiguous test count) fixed in this closeout. Reviewer did not run tests; full gate was run separately.
+- Task 6 commit `ffcdd84` documents the optional companion catalogs; the feature-range review found an important source-precedence gap, fixed in the follow-up parser commit.
+- Task 6 final gate: five shell tests, runtime-catalog parser 3/3, link regression, `make -n setup`, `make check`, syntax parsing, and `git diff --check` → PASS. Untracked user skills remain outside staged paths.
+- `bash tests/test-sdd-contract.sh` → expected RED: current SDD still requires `docs/superpowers/`, `.superpowers/sdd/`, and external skill IDs.
+- `skills/ship-change/SKILL.md` baseline → pressure scenario completed; current instructions mandate vendor-named paths and external IDs, contradicting the approved local-only constraint.

@@ -1,164 +1,74 @@
 ---
 name: ship-change
-description: Convierte una feature en un cambio terminado mediante el flujo SDD de superpowers — spec, plan, tareas con briefs, review por tarea y ledger — y cierra con @linked, docs y tests en verde. Úsalo para features multi-archivo, refactors grandes o migraciones; para un fix pequeño, el bucle del agente developer basta.
+description: Úsalo para features de varios archivos, migraciones, cambios de contrato o trabajo que abarque varias sesiones y necesite un ciclo SDD completo.
 ---
 
-# Ship a change (SDD)
+# Cerrar un cambio (SDD)
 
-El flujo que ya usas, con las partes que se estaban perdiendo afinadas. Si el
-cambio cabe en un fix pequeño, **no lo conviertas en ceremonia**: usa el bucle
-del agente developer y listo.
+Flujo local para llevar un cambio sustancial desde la intención hasta commits verificados. Un fix pequeño, una función o un cambio de texto sigue el bucle normal del agente `developer`; no añadas ceremonia SDD si no hacen falta tareas coordinadas.
 
-## Cuándo este flujo y cuándo no
+## Cuándo usarlo
 
 | Cambio | Flujo |
 |---|---|
-| Fix de una función, texto, ajuste de estilo | Bucle del developer |
-| Migración de datos, cambio de contrato, feature multi-archivo | **Este flujo** |
-| Más de 3 ficheros o más de una sesión de trabajo | **Este flujo** |
+| Fix pequeño, una función o texto | Bucle del developer |
+| Migración, cambio de contrato o feature multiarchivo | Este flujo SDD |
+| Más de tres archivos o más de una sesión | Este flujo SDD |
 
-## Las fases
+## Fases
 
 ### 0. Alcance
 
-Antes de escribir nada, en una frase: qué cambia, qué no cambia, y cómo se
-sabe que está terminado. Si no puedes decirlo, el problema no es el código, es
-el alcance.
+Resume en una frase qué cambia, qué no cambia y cómo se reconocerá que terminó. Si el alcance cubre subsistemas independientes, divídelo en specs antes de planificar.
 
-### 1. Spec
+### 1. Diseño y spec
 
-Skill `brainstorming`. Sale en `docs/superpowers/specs/YYYY-MM-DD-<slug>-design.md`.
-Es de la **fase**, no de la tanda: un solo spec puede alimentar varios planes.
+Aclara propósito, usuario, restricciones, casos límite y criterios de éxito antes de implementar. Pregunta las decisiones que cambian el comportamiento; registra supuestos sólo cuando no alteren el diseño.
 
-Si hay decisiones que todavía no has formulado, **pregúntalas en un solo mensaje y
-todas juntas**, ordenadas por lo que más bloquean. Y avanza con el valor por
-defecto en las que no cambien el diseño, diciendo en el spec cuál has supuesto.
+Escribe una spec de fase en `docs/specs/YYYY-MM-DD-<slug>-design.md`. Usa `references/spec-plan.md`. Incluye problema, alcance, diseño, casos límite, decisiones pendientes y responsables, opciones descartadas, aceptación automática y humana. Una spec de fase puede alimentar varios planes.
 
-Por qué en lote, y no de una en una: cuarenta viajes de ida y vuelta antes de
-escribir una línea no es rigor, es un peaje. Preguntar todo en un mensaje cuesta
-lo mismo y devuelve lo mismo.
-
-Y ojo con el motivo real: no es que el modelo decida, es que **tú veas** las
-decisiones que no habías formulado. Eso pasa igual en lote que de una en una.
-
-Si el usuario ya sabe exactamente lo que quiere, no preguntes nada: un spec corto
-y a ejecutar. No le montes una elección de requisitos.
-
-Recoge el diseño, los casos límite, **las decisiones que se descartaron y por
-qué** —esa parte es la que ahorra tiempo tres semanas después— y **las que quedan
-pendientes**, con qué bloquean y quién las decide. Formato en
-`references/spec-plan.md`.
-
-Una decisión pendiente no bloquea la ejecución: se anota y se sigue. Bloquea al
-cerrar la tarea que dependía de ella, y eso va al ledger.
+Si el cambio depende de elegir una interfaz de módulo o un seam de pruebas, usa `codebase-design` para comparar opciones antes de aprobar la spec.
 
 ### 2. Plan
 
-Skill `writing-plans`. Sale en `docs/superpowers/plans/YYYY-MM-DD-<slug>-plan.md`.
-
-Descompón en tareas. Cada tarea:
-
-- es un commit
-- deja el repo en verde
-- se puede revisar por separado
-
-Una tarea que deja los tests rojos no es una tarea: es la mitad de una.
+Escribe un plan de tanda en `docs/plans/YYYY-MM-DD-<slug>-plan.md`. Descompón el trabajo en tareas ordenadas; cada tarea nombra archivos exactos, interfaces, pruebas y el cambio que deja el repo en verde. Usa `references/spec-plan.md`.
 
 ### 3. Tareas
 
-Skill `subagent-driven-development`. Cada tarea en
-`.superpowers/sdd/YYYY-MM-DD-<slug>/`:
+Guarda los artefactos en `.work/sdd/YYYY-MM-DD-<slug>/`:
 
-- `task-N-brief.md` — el formato está en `references/brief.md`
-- `task-N-report.md` — lo que hizo, y **qué encontró que no estaba en el brief**
-- `review-<shaA>..<shaB>.diff` — el diff de la tarea
+- `task-N-brief.md`: contrato, archivos, interfaces, pasos y acciones que la tarea no autoriza; usa `references/brief.md`.
+- `task-N-report.md`: resultado, desviaciones y supuestos o defectos del brief que se descubrieron.
+- `review-<shaA>..<shaB>.diff`: entrada de review para el rango de commits de la tarea.
+- `progress.md`: estado, hazards, hallazgos diferidos y escalaciones; usa `references/ledger.md`.
 
-El implementador **no se limita a obedecer el brief**. Si encuentra que el brief
-está mal, o que el brief y el código no encajan, lo arregla y lo deja escrito en
-el report. Eso no es desviarse: es el valor del flujo.
+Al empezar una tarea, lee su brief y revisa los hazards abiertos. Si uno afecta la tarea, arréglalo primero. Trabaja en ciclos red-green pequeños con `tdd`; usa `diagnosing-bugs` cuando el bug no tenga causa o reproducción fiables. Respeta el brief, conserva cambios ajenos del working tree y añade sólo las rutas nombradas, nunca `git add -A`.
 
-### 4. Ledger
+Si divides una tarea entre varios agentes, usa la sección `Delegación` del brief para dar a cada uno objetivo, contexto/restricciones, rutas de escritura exclusivas, dependencias/contrato y entregable. **No asignes rutas de escritura solapadas**: un verificador puede compartirlas sólo en lectura. Si el trabajo necesita escritores en las mismas rutas o depende de cambios aún no integrados, secuéncialo en vez de paralelizarlo. El coordinador integra las entregas y sigue siendo responsable del gate completo. Cada entrega declara estado `done|blocked|partial`, resumen de máximo 10 líneas y comandos/resultados; incorpora el detalle largo en `task-N-report.md`.
 
-`progress.md` en la carpeta de la SDD. Formato y disciplina de hallazgos
-diferidos en `references/ledger.md`.
+Cada tarea es un commit revisable y deja el repo en verde. Tras implementarla, ejecuta sus verificaciones y pide al agente de sólo lectura `reviewer` que revise su diff. Anota el resultado y cada hallazgo diferido en el ledger antes de seguir.
 
-### 5. Cierre
+### 4. Cierre
 
-Skills `verification-before-completion` y `requesting-code-review`.
+Ejecuta el gate del proyecto en el orden documentado: tests, build, lint y end-to-end si el cambio afecta rutas públicas, paneles o autenticación. Usa `verification` antes de declarar éxito y `code-review` para la review final del rango completo.
 
-- `@linked`: cada fichero tocado actualiza su `.md` en el mismo commit, y el
-  índice maestro (`docs/index.md`) crece si hay entrada nueva.
-- Gate completo: tests → build → lint → e2e si toca rutas públicas o panel.
-- Review final con el agente `reviewer` sobre el rango completo de la SDD.
+- Actualiza la documentación `@linked` y `docs/index.md` en el mismo cambio lógico cuando corresponda.
+- Contrasta la documentación con el `AGENTS.md` del proyecto; una contradicción es un defecto que hay que resolver.
+- Las afirmaciones sobre tamaño o rendimiento requieren cifras medidas.
+- No hagas push, publiques, despliegues ni cambies cuentas externas sin autorización explícita del usuario.
 
-## Las seis reglas que evitan las fugas
+## Reglas contra fugas
 
-Cada una sale de algo que ya se te perdió en un ledger anterior. Están aquí
-para que no se repitan.
-
-### 1. Un hallazgo diferido siempre tiene destino
-
-Encontraste algo que no es de esta tarea. **No lo escribas y sigas.**
-
-```
-important (deferred → Task 8 PlayPage wiring)
-minor (rechazado: cosmético, el formateador lo arregla solo)
-```
-
-O tiene tarea, o tiene motivo del rechazo. Un `(deferred)` a secas es un
-hallazgo que se pierde, y sueles encontrártelo cuando ya es otro contexto.
-
-### 2. Los hazards se revisan al empezar una tarea, no al terminarla
-
-Si una tarea deja un **crash latente** que se arregla tres tareas después,
-mientras tanto el repo está roto para quien venga. Eso ha pasado.
-
-Al empezar cada tarea, mira los hazards diferidos y comprueba si te tocan. Si
-sí, es lo primero que arreglas. El registro de hazards está en el ledger, y se
-revisa **al abrir** la tarea siguiente.
-
-### 3. Un doc que se contradice con el `AGENTS.md` es un bug
-
-Ha pasado: un doc afirmaba un mínimo de 64px donde el `AGENTS.md` exigía 72px.
-Los tests medían lo que el doc decía, así que los dos parecían correctos y nadie
-se enteró meses después.
-
-Cuando toques un doc, contrasta sus afirmaciones con las reglas del proyecto. Si
-se contradicen, el `AGENTS.md` gana y el doc se corrige.
-
-### 4. Un test que nunca falló no es un test
-
-Cada test nuevo se demuestra **rojo contra el código viejo** antes de pasar a
-verde contra el nuevo. Si no puedes explicar cómo se rompe, el test es
-decorativo y solo da falsa confianza.
-
-### 5. Una afirmación de tamaño o rendimiento sin cifra no cuenta
-
-No escribas "optimizado" ni "sin regresiones". Escribe los números:
-
-```
-index-*.js 380.79 kB (0 referencias) + PackScene-*.js 908.86 kB (gzip 240.81)
-```
-
-Si el cambio toca peso de bundle o rendimiento, la cifra medida va en el report.
-Sin cifra, es una opinión.
-
-### 6. Las escalaciones al dueño de la feature tienen su propio sitio
-
-Cuando el brief y el producto se contradicen — el brief pedía algo que choca
-con una regla que ya conocías —, el implementador no elige en silencio. Lo
-cumple, lo cumple **por encima** de lo que le dijeron, y lo escala.
-
-Pon esas escalaciones en una sección propia del ledger, no enterradas en el
-report de una tarea. Son decisiones de producto, no de código, y se pierden con
-mucho más facilidad.
+1. **Todo hallazgo diferido tiene destino.** Asígnale una tarea o registra por qué se rechazó; nunca lo dejes como “diferido” a secas.
+2. **Revisa hazards al empezar cada tarea.** Un estado intermedio roto sigue abierto hasta que se arregle o se rechace con motivo y responsable.
+3. **Un doc que contradice al `AGENTS.md` es un defecto.** Resuelve la contradicción al encontrarla.
+4. **Un test que nunca falló no está demostrado.** Comprueba el red esperado antes de confiar en el verde.
+5. **Las afirmaciones de tamaño o rendimiento necesitan medidas.** Registra valores antes/después cuando corresponda.
+6. **Las escalaciones de producto tienen sección propia en el ledger.** No las entierres en el informe de una tarea.
 
 ## Cuándo parar y preguntar
 
-- El spec y el código no encajan, y no hay forma obvia de resolverlo.
-- Una tarea resulta ser tres.
-- El gate falla y no es obvio por qué.
-- El cambio toca algo que el `AGENTS.md` prohíbe explícitamente.
-
-Parar y preguntar cuesta un mensaje. Seguir destructivamente cuesta un
-`git reset` y tu confianza en el flujo.
+- La spec contradice el comportamiento real y no hay un valor por defecto seguro.
+- Una tarea se convierte en tareas independientes o la interfaz ya no coincide con el plan.
+- Falla un gate y la causa no está clara.
+- El cambio contradice una instrucción explícita del proyecto.

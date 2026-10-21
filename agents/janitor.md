@@ -1,5 +1,9 @@
 ---
-description: Limpia lo que queda después de mergear una rama — worktree, rama local, rama remota y las sesiones de opencode de ese worktree. Borra, así que primero informa y solo borra lo que se le confirma. Úsalo cuando una rama ya está mergeada en la de destino y queda el esqueleto.
+description: Limpia lo que queda después de mergear una rama — worktree, rama
+  local, rama remota y las sesiones de opencode de ese worktree. Borra, así que
+  primero informa y solo borra lo que se le confirma. Úsalo cuando una rama ya
+  está mergeada en la de destino y queda el esqueleto.
+model: opencode/big-pickle
 mode: subagent
 permissions:
   - action: edit
@@ -9,10 +13,10 @@ permissions:
     resource: "*"
     effect: deny
   - action: shell
-    resource: "git *"
+    resource: git *
     effect: allow
   - action: shell
-    resource: "opencode session *"
+    resource: opencode session *
     effect: allow
 ---
 

@@ -1,0 +1,53 @@
+diff --git a/.work/sdd/2026-10-20-sdd-local/task-8-report.md b/.work/sdd/2026-10-20-sdd-local/task-8-report.md
+index 7f095cf..5d9c97f 100644
+--- a/.work/sdd/2026-10-20-sdd-local/task-8-report.md
++++ b/.work/sdd/2026-10-20-sdd-local/task-8-report.md
+@@ -2,6 +2,6 @@
+ 
+ **Result:** Strengthened contract tests to assert all six SDD leakage rules, forbid whole-tree staging, require the skills link in `scripts/link.sh`, and preserve `context7` and `codegraph` MCP declarations.
+ 
+-**Verification:** Both real tests pass. Mutation fixtures removing the deferred-finding rule, staging restriction, `context7`, and the skills link each fail as expected.
++**Verification:** Both real tests pass. Mutation fixtures removing the deferred-finding rule, staging restriction, `context7`, and the skills link each fail. A follow-up fixture with comment-only fake MCP/link entries also fails, so comments cannot satisfy the checks.
+ 
+-**Review record:** The exact Task 8 diff and reviewer verdict will be recorded before closeout.
++**Review record:** Reviewer found an Important false-positive gap: MCP/link checks matched substrings outside their intended structures. Fixed by scoping MCP assertions beneath `mcp.servers` and matching the exact `LINKED` declaration. The follow-up diff and reviewer verdict will be recorded before closeout.
+diff --git a/docs/plans/2026-10-20-sdd-local.md b/docs/plans/2026-10-20-sdd-local.md
+index 6369d44..12d044a 100644
+--- a/docs/plans/2026-10-20-sdd-local.md
++++ b/docs/plans/2026-10-20-sdd-local.md
+@@ -184,7 +184,7 @@
+ - [x] **Step 2: Extend the setup contract test** to assert the local skills directory remains in the global link set and both `context7` and `codegraph` remain configured.
+ - [x] **Step 3: Run mutation checks** with temporary copies missing one SDD rule, the skills link, and one MCP; each mutated fixture must fail.
+ - [x] **Step 4: Run the real SDD and setup contract tests.** Expected: both pass on the repository files.
+-- [ ] **Step 5: Commit** as `test(sdd): cubre invariantes del flujo local`.
++- [x] **Step 5: Commit** as `test(sdd): cubre invariantes del flujo local`.
+ 
+ ### Task 9: Backfill per-task SDD traceability
+ 
+diff --git a/tests/test-no-superpowers-dependency.sh b/tests/test-no-superpowers-dependency.sh
+index 865263a..50a1fd6 100644
+--- a/tests/test-no-superpowers-dependency.sh
++++ b/tests/test-no-superpowers-dependency.sh
+@@ -34,11 +34,17 @@ done
+ 
+ grep -Fq '@openchamber/opencode-claude@1.4.1' "$REPO_DIR/opencode.jsonc" \
+   || fail 'the OpenChamber plugin was removed from opencode.jsonc'
+-for mcp_id in context7 codegraph; do
+-  grep -Fq "\"$mcp_id\"" "$REPO_DIR/opencode.jsonc" \
+-    || fail "the $mcp_id MCP server was removed from opencode.jsonc"
+-done
+-grep -Eq '^LINKED=\([^)]*skills[^)]*\)' "$REPO_DIR/scripts/link.sh" \
++if ! awk '
++  /^[[:space:]]*"mcp"[[:space:]]*:/ { in_mcp = 1 }
++  in_mcp && /^[[:space:]]*"servers"[[:space:]]*:/ { in_servers = 1; next }
++  in_servers && /^    }/ { in_servers = 0; in_mcp = 0 }
++  in_servers && /^[[:space:]]*"context7"[[:space:]]*:/ { context7 = 1 }
++  in_servers && /^[[:space:]]*"codegraph"[[:space:]]*:/ { codegraph = 1 }
++  END { exit !(context7 && codegraph) }
++' "$REPO_DIR/opencode.jsonc"; then
++  fail 'context7 and codegraph must both remain under mcp.servers'
++fi
++grep -Eq '^LINKED=\(opencode.jsonc AGENTS.md agents skills commands\)$' "$REPO_DIR/scripts/link.sh" \
+   || fail 'the global linker no longer links the local skills directory'
+ 
+ for skill_id in ship-change tdd diagnosing-bugs code-review codebase-design verification; do

@@ -1,5 +1,9 @@
 ---
-description: Ejecuta el bucle completo de un cambio — test antes que código, implementación, sincronizar @linked, docs y tests en verde — apoyándose en el SDD de superpowers cuando el cambio es grande. Úsalo para cualquier cambio de código, no para consultas ni para explicar código.
+description: Ejecuta el bucle completo de un cambio — test antes que código,
+  implementación, sincronizar @linked, docs y tests en verde — apoyándose en el
+  SDD local cuando el cambio es grande. Úsalo para cualquier cambio de
+  código, no para consultas ni para explicar código.
+model: opencode-go/gpt-6-luna
 mode: all
 ---
 
@@ -37,7 +41,7 @@ Escribe el test que falla **antes** de escribir la implementación. Si el
 proyecto no tiene harness de tests, dilo explícitamente y sigue; pero no
 digas después "tests en verde" si no los hay.
 
-Si está disponible, carga el skill `test-driven-development`.
+Carga el skill local `tdd`.
 
 ### 2. Implementa
 
@@ -99,7 +103,7 @@ El umbral lo decide el tamaño del cambio, no si te apetece.
 
 ## Verificar antes de decir que has terminado
 
-Carga `verification-before-completion` antes de cualquier afirmación de éxito.
+Carga `verification` antes de cualquier afirmación de éxito.
 Su regla es simple y no se negocia: **no afirmes que está hecho sin la salida
 del gate delante de ti.**
 

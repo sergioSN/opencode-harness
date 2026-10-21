@@ -106,9 +106,10 @@ def main():
         # 2. Deny general de shell, y su posición.
         dshell = indice(perms, "shell", "*", "deny")
         if dshell is None:
-            print("WARN|%s: no hay deny general de shell (revisar que no pueda"
+            print("BAD|%s: no hay deny general de shell; podría ejecutar órdenes no"
                   % etiqueta)
-            print("HINT|ejecutar nada más)")
+            print("HINT|permitidas además de sus excepciones explícitas.")
+            fallos += 1
 
         # 3. Cada excepción que necesita, y que vaya DESPUÉS del deny.
         for recurso in excepciones:
