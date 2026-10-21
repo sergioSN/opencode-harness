@@ -59,6 +59,29 @@ grep -Fq 'nunca `git add -A`' "$REPO_DIR/skills/ship-change/references/brief.md"
 grep -Fq 'rutas de `Files`' "$REPO_DIR/skills/ship-change/references/brief.md" \
   || fail 'task brief does not limit staging to its Files list'
 
+for handoff_field in \
+  '**Delegación (si aplica; si no, escribe `sin delegación`):**' \
+  '**Agente responsable:**' \
+  '**Objetivo:**' \
+  '**Contexto y restricciones:**' \
+  '**Rutas de escritura exclusivas:**' \
+  '**Dependencias y contrato:**' \
+  '**Entregable:**'; do
+  grep -Fq "$handoff_field" "$REPO_DIR/skills/ship-change/references/brief.md" \
+    || fail "task brief is missing delegation handoff field: $handoff_field"
+done
+grep -Fq 'no se solapan' "$REPO_DIR/skills/ship-change/references/brief.md" \
+  || fail 'task brief does not require disjoint parallel write paths'
+grep -Fq 'Una ficha por agente/entrega' "$REPO_DIR/skills/ship-change/references/brief.md" \
+  || fail 'task brief does not distinguish each delegated assignment'
+grep -Fq 'resumen de máximo 10 líneas' "$REPO_DIR/skills/ship-change/references/brief.md" \
+  || fail 'task brief does not require a concise agent handoff'
+grep -Fq 'done|blocked|partial' "$REPO_DIR/skills/ship-change/references/brief.md" \
+  || fail 'task brief does not require a completion status'
+
+grep -Fq 'No asignes rutas de escritura solapadas' "$REPO_DIR/skills/ship-change/SKILL.md" \
+  || fail 'ship-change does not prevent parallel writers from owning overlapping paths'
+
 grep -Fq 'ship-change' "$REPO_DIR/agents/developer.md" \
   || fail 'developer does not route large changes to ship-change'
 grep -Fq 'developer' "$REPO_DIR/commands/ship.md" \

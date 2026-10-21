@@ -44,6 +44,8 @@ Guarda los artefactos en `.work/sdd/YYYY-MM-DD-<slug>/`:
 
 Al empezar una tarea, lee su brief y revisa los hazards abiertos. Si uno afecta la tarea, arréglalo primero. Trabaja en ciclos red-green pequeños con `tdd`; usa `diagnosing-bugs` cuando el bug no tenga causa o reproducción fiables. Respeta el brief, conserva cambios ajenos del working tree y añade sólo las rutas nombradas, nunca `git add -A`.
 
+Si divides una tarea entre varios agentes, usa la sección `Delegación` del brief para dar a cada uno objetivo, contexto/restricciones, rutas de escritura exclusivas, dependencias/contrato y entregable. **No asignes rutas de escritura solapadas**: un verificador puede compartirlas sólo en lectura. Si el trabajo necesita escritores en las mismas rutas o depende de cambios aún no integrados, secuéncialo en vez de paralelizarlo. El coordinador integra las entregas y sigue siendo responsable del gate completo. Cada entrega declara estado `done|blocked|partial`, resumen de máximo 10 líneas y comandos/resultados; incorpora el detalle largo en `task-N-report.md`.
+
 Cada tarea es un commit revisable y deja el repo en verde. Tras implementarla, ejecuta sus verificaciones y pide al agente de sólo lectura `reviewer` que revise su diff. Anota el resultado y cada hallazgo diferido en el ledger antes de seguir.
 
 ### 4. Cierre

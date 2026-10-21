@@ -25,6 +25,15 @@ dato, o es una pregunta para el usuario antes de empezar.
 El comportamiento observable que debe quedar. En una frase por caso límite,
 no en prosa.
 
+**Delegación (si aplica; si no, escribe `sin delegación`):**
+- Una ficha por agente/entrega; repite estos campos para cada asignación.
+- **Agente responsable:** rol o agente que recibe cada entrega.
+- **Objetivo:** resultado concreto que entrega cada agente.
+- **Contexto y restricciones:** datos necesarios y límites de la tarea.
+- **Rutas de escritura exclusivas:** rutas asignadas a cada agente; no se solapan. Las rutas compartidas sólo se leen.
+- **Dependencias y contrato:** orden, interfaz o resultado que consume de otra tarea/agente.
+- **Entregable:** estado `done|blocked|partial`; resumen de máximo 10 líneas con rutas cambiadas y comandos/resultados. El detalle largo va al `task-N-report.md`.
+
 **Steps:**
 - [ ] 1. Escribir los tests que fallan
 - [ ] 2. Implementar el helper
@@ -81,6 +90,8 @@ no lo menciones.
 - [ ] ¿La tarea deja el repo en verde al terminar? Si no, es la mitad de otra.
 - [ ] ¿Está escrito lo que NO autoriza? Y quien lo lea, ¿sabe qué no hacer sin
       tener que preguntar?
+- [ ] Si se delega en paralelo, ¿cada escritor tiene rutas exclusivas sin solapes,
+      y el entregable pide estado, resumen corto y evidencia?
 
 ## Cuando el implementador encuentra un fallo en el brief
 
