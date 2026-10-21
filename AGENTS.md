@@ -84,6 +84,27 @@ aprendizaje infantil va en `feature/openchamber-child-learning-ux`, no en
 `openchamber/child-learning-ux`. Una corrección de esa área sería
 `fix/openchamber-drawing-controls`; una corrección urgente, `hotfix/session-auth-expired`.
 
+### Actualiza la base antes de crear ramas o specs/planes
+
+Antes de crear una rama o redactar/actualizar una spec o un plan, comprueba la
+base más reciente para no diseñar trabajo sobre código obsoleto:
+
+1. Ejecuta `git fetch --all` e identifica el remoto de integración del proyecto
+   (normalmente `origin`). Revisa `git status` y conserva todo el trabajo local.
+2. Trabajo normal: elige la rama upstream más reciente, priorizando `develop`, luego `main` y `master`.
+   Si sólo existe `develop` local sin upstream, pregunta;
+   no supongas que está al día.
+3. Crea la rama nueva directamente desde esa base. Si ya estás en una rama,
+   incorpora los cambios recientes de esa base antes de redactar/actualizar una
+   spec o un plan, siguiendo la política del proyecto. No uses reset, checkout
+   forzado ni descartes cambios locales.
+4. Si el árbol sucio o una divergencia impiden actualizar sin riesgo, para y
+   pide una decisión; no continúes con una base obsoleta.
+
+**Hotfix:** `hotfix/*` sale siempre de la última `main` upstream; si no existe,
+desde `master`, aunque exista `develop`. Si esa base no puede identificarse o
+actualizarse con seguridad, pregunta antes de crear la rama o redactar el plan.
+
 **El diff se lee entero antes de commitear**, y el `AGENTS.md` no se toca en un
 commit «de paso»: va en su propio.
 
