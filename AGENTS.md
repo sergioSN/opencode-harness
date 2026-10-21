@@ -28,7 +28,7 @@ repo es la configuración global de opencode.
 ese repo: los comandos de test reales, las reglas de negocio, qué no tocar. El
 agente global define el bucle, no los comandos de tu proyecto.
 
-### Los commits: convencionales y atómicos
+### Commits: convencionales, atómicos y en inglés
 
 Está aquí, y no solo en la skill, por una razón concreta: la regla del
 `developer` y la del brief de `ship-change` solo se cargan cuando estás
@@ -36,13 +36,14 @@ ejecutando ese bucle dentro de un proyecto. **Mantener este repo, o cualquier
 otro, también es escribir commits**, y ahí no se cargan. Este fichero es el
 único que se lee en todas las sesiones, así que la base va aquí.
 
-**Convencionales.** `tipo(ámbito): qué hace, en una línea imperativa`.
+**Conventional Commits.** El asunto sigue `type(scope): imperative summary`; tanto
+el asunto como el cuerpo se escriben en inglés.
 
 ```
-feat(auth): renueva el token antes de que expire
-fix(db): no traga el error si la migración ya corrió
-docs(readme): explica por qué el puerto es el 4096
-chore(config): alinea los modelos de los agentes
+feat(auth): refresh the token before it expires
+fix(db): surface migration errors
+docs(readme): explain why the service uses port 4096
+chore(config): align agent model settings
 ```
 
 Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`,
@@ -51,16 +52,16 @@ el proyecto declara los suyos, se usan esos.
 
 **Atómicos.** Un commit, un cambio lógico. Dos reglas que se comprueban:
 
-- Si el mensaje necesita una «y» —«arregla el token y añade el test»—, casi
-  siempre son dos commits.
+- Si el asunto necesita «and» —`fix(auth): refresh token and add retry`—,
+  normalmente son dos commits.
 - Si puedes decir «este commit se revierte sin tocar el otro», son dos.
 
 Un commit atómico se revierte entero y el repo sigue compilando. Esa es la
 prueba, y es más fiable que la intuición.
 
 **El cuerpo explica el porqué; el asunto dice el qué.** El asunto va en
-imperativo y sin punto. Si el *porqué* no cabe en una línea, va en el cuerpo,
-que es lo que se lee en el `git log` de dentro de seis meses.
+imperativo y sin punto. Si el *porqué* no cabe en una línea, explícalo en el
+cuerpo, también en inglés.
 
 **El diff se lee entero antes de commitear**, y el `AGENTS.md` no se toca en un
 commit «de paso»: va en su propio.

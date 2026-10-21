@@ -8,9 +8,17 @@ if grep -qi 'superpowers' "$agents_file"; then
   printf 'FAIL: AGENTS.md still uses a vendor-specific dependency example\n' >&2
   exit 1
 fi
-if ! grep -q 'chore(config):' "$agents_file"; then
-  printf 'FAIL: AGENTS.md no longer shows a conventional config example\n' >&2
+if ! grep -Fq 'feat(auth): refresh the token before it expires' "$agents_file"; then
+  printf 'FAIL: AGENTS.md does not show an English Conventional Commit subject\n' >&2
+  exit 1
+fi
+if ! grep -Fq 'el asunto como el cuerpo se escriben en inglés' "$agents_file"; then
+  printf 'FAIL: AGENTS.md does not require commit messages in English\n' >&2
+  exit 1
+fi
+if ! grep -Fq 'Un commit, un cambio lógico' "$agents_file"; then
+  printf 'FAIL: AGENTS.md does not require atomic commits\n' >&2
   exit 1
 fi
 
-printf 'PASS: AGENTS.md uses a neutral conventional commit example\n'
+printf 'PASS: AGENTS.md requires English atomic Conventional Commits\n'
