@@ -1,0 +1,203 @@
+diff --git a/.work/sdd/2026-10-21-parallel-task-handoffs/progress.md b/.work/sdd/2026-10-21-parallel-task-handoffs/progress.md
+new file mode 100644
+index 0000000..e1d120a
+--- /dev/null
++++ b/.work/sdd/2026-10-21-parallel-task-handoffs/progress.md
+@@ -0,0 +1,18 @@
++# SDD ledger — plan: docs/plans/2026-10-21-parallel-task-handoffs-plan.md
++
++## Task status
++
++Task 1: implementation complete; review pending
++
++## Hazards abiertos
++
++- none
++
++## Escalaciones
++
++- none
++
++## Verificación
++
++- `bash tests/test-sdd-contract.sh` → RED: delegation fields, disjoint write paths, concise status and coordinator rule are absent.
++- After implementation: `bash tests/test-sdd-contract.sh`, `bash tests/test-local-skill-catalog.sh`, and `bash tests/test-no-superpowers-dependency.sh` → PASS; `make check` → PASS.
+diff --git a/.work/sdd/2026-10-21-parallel-task-handoffs/task-1-brief.md b/.work/sdd/2026-10-21-parallel-task-handoffs/task-1-brief.md
+new file mode 100644
+index 0000000..e900c07
+--- /dev/null
++++ b/.work/sdd/2026-10-21-parallel-task-handoffs/task-1-brief.md
+@@ -0,0 +1,15 @@
++### Task 1: Define safe delegated task handoffs
++
++**Files:**
++- Modify: `skills/ship-change/references/brief.md`
++- Modify: `skills/ship-change/SKILL.md`
++- Modify: `tests/test-sdd-contract.sh`
++- Create: `docs/specs/2026-10-21-parallel-task-handoffs-design.md`
++- Create: `docs/plans/2026-10-21-parallel-task-handoffs-plan.md`
++- Create: `.work/sdd/2026-10-21-parallel-task-handoffs/{progress.md,task-1-brief.md,task-1-report.md}`
++
++**Contract:** A serial task explicitly opts out of delegation. Every parallel assignment gets its own repeated handoff record naming the responsible agent, goal, context/constraints, exclusive write paths, dependencies/contract, and deliverable. Writer paths do not overlap; a shared verifier is read-only. Delegated reports include `done|blocked|partial`, a maximum 10-line summary, and commands/results.
++
++**Does not authorize:** implementing a runtime agent orchestrator, automatic path inference, or editing unrelated user skills and agent files.
++
++**Verification:** `bash tests/test-sdd-contract.sh` must fail before the template/workflow update and pass afterward.
+diff --git a/.work/sdd/2026-10-21-parallel-task-handoffs/task-1-report.md b/.work/sdd/2026-10-21-parallel-task-handoffs/task-1-report.md
+new file mode 100644
+index 0000000..4ebd7fd
+--- /dev/null
++++ b/.work/sdd/2026-10-21-parallel-task-handoffs/task-1-report.md
+@@ -0,0 +1,9 @@
++# Task 1 report — safe delegated task handoffs
++
++**Result:** Added an optional delegation block to the brief template and coordination rules to `ship-change`. Parallel assignments identify an agent, goal, context/constraints, exclusive write paths, dependencies/contract, and deliverable. Writer paths cannot overlap; read-only verification may share paths. Delegated results use `done|blocked|partial`, a summary up to 10 lines, and commands/results.
++
++**TDD evidence:** Before the docs changed, `bash tests/test-sdd-contract.sh` failed on the absent delegation fields, disjoint-path rule, concise handoff, status, and coordinator instruction. After implementation it prints `PASS: SDD consumers use local skills and neutral artifact paths`.
++
++**Verification:** `bash tests/test-local-skill-catalog.sh` prints `PASS: required local skills have unique, discoverable definitions`; `bash tests/test-no-superpowers-dependency.sh` prints `PASS: setup and operational docs are self-contained`; `make check` ends with `✓ Todo correcto.` Scoped `git diff --check` and `bash -n tests/test-sdd-contract.sh` pass.
++
++**Review:** pending.
+diff --git a/docs/plans/2026-10-21-parallel-task-handoffs-plan.md b/docs/plans/2026-10-21-parallel-task-handoffs-plan.md
+new file mode 100644
+index 0000000..d9a533c
+--- /dev/null
++++ b/docs/plans/2026-10-21-parallel-task-handoffs-plan.md
+@@ -0,0 +1,11 @@
++# Plan: parallel task handoffs
++
++Spec: `docs/specs/2026-10-21-parallel-task-handoffs-design.md`
++
++## Task order
++
++| # | Work | Depends on | Leaves green |
++|---|---|---|---|
++| 1 | Add agent identity, disjoint write ownership, and a concise handoff contract to the SDD template and coordinator instructions, with a regression test | — | Yes |
++
++No migrations or deploy steps.
+diff --git a/docs/specs/2026-10-21-parallel-task-handoffs-design.md b/docs/specs/2026-10-21-parallel-task-handoffs-design.md
+new file mode 100644
+index 0000000..86f4332
+--- /dev/null
++++ b/docs/specs/2026-10-21-parallel-task-handoffs-design.md
+@@ -0,0 +1,44 @@
++# Make delegated SDD tasks safe to parallelize
++
++## Problem
++
++The task brief names the files for the whole task, but does not partition write ownership when a coordinator delegates parts to multiple agents. Concurrent writers can therefore touch the same path, and their handoff has no required status or concise result format.
++
++## Scope
++
++- **Yes:** define an optional delegation section with agent/owner, goal, context/constraints, exclusive write paths, dependencies/contract, and deliverable.
++- **Yes:** require parallel writers to own disjoint paths; shared inspection is read-only. If ownership cannot be disjoint, sequence the work.
++- **Yes:** standardize delegated results as `done|blocked|partial` with a summary of at most 10 lines and commands/results.
++- **No:** add a runtime orchestrator, auto-partition repository files, or change the normal single-implementer workflow.
++
++## Design
++
++Extend the existing brief template and `ship-change` coordination rules. A serial task explicitly says `sin delegación`. The template requires one repeated handoff record per delegated assignment, naming its responsible agent, goal, context and constraints, exclusive writable paths, dependencies/interface contract, and deliverable. No two writers may own overlapping paths; a read-only verifier may inspect those paths. If paths overlap, sequence the assignments instead of relaxing ownership. Require a concise status report and leave long details in the task report.
++
++## Edge cases
++
++- No delegated agent: the brief explicitly says `sin delegación`.
++- Shared files needed by multiple agents: only one writer owns them; other agents receive read-only access or a contract, otherwise work is sequenced.
++- A task spans overlapping paths: reject parallel execution until the split is changed.
++- A delegated agent is blocked or only partially completes: use the corresponding explicit status and report remaining work; do not label it done.
++
++## Decisions pending
++
++None.
++
++## Rejected options
++
++| Option | Why not |
++|---|---|
++| Copy the colleague's tmux/Claude orchestration application | This repo is OpenCode configuration and workflow, not an agent runtime. |
++| Infer ownership automatically from filenames | It cannot determine semantic ownership and would add a runtime mechanism without a present implementation. |
++
++## Completion
++
++### Automatic
++
++- `tests/test-sdd-contract.sh` requires all handoff fields, disjoint writer ownership, concise status reporting, and the coordinator rule.
++
++### Human acceptance
++
++- A maintainer can fill the section for a parallel task without inventing the ownership or report contract.
+diff --git a/skills/ship-change/SKILL.md b/skills/ship-change/SKILL.md
+index 23a5c8e..c896cf5 100644
+--- a/skills/ship-change/SKILL.md
++++ b/skills/ship-change/SKILL.md
+@@ -44,6 +44,8 @@ Guarda los artefactos en `.work/sdd/YYYY-MM-DD-<slug>/`:
+ 
+ Al empezar una tarea, lee su brief y revisa los hazards abiertos. Si uno afecta la tarea, arréglalo primero. Trabaja en ciclos red-green pequeños con `tdd`; usa `diagnosing-bugs` cuando el bug no tenga causa o reproducción fiables. Respeta el brief, conserva cambios ajenos del working tree y añade sólo las rutas nombradas, nunca `git add -A`.
+ 
++Si divides una tarea entre varios agentes, usa la sección `Delegación` del brief para dar a cada uno objetivo, contexto/restricciones, rutas de escritura exclusivas, dependencias/contrato y entregable. **No asignes rutas de escritura solapadas**: un verificador puede compartirlas sólo en lectura. Si el trabajo necesita escritores en las mismas rutas o depende de cambios aún no integrados, secuéncialo en vez de paralelizarlo. El coordinador integra las entregas y sigue siendo responsable del gate completo. Cada entrega declara estado `done|blocked|partial`, resumen de máximo 10 líneas y comandos/resultados; incorpora el detalle largo en `task-N-report.md`.
++
+ Cada tarea es un commit revisable y deja el repo en verde. Tras implementarla, ejecuta sus verificaciones y pide al agente de sólo lectura `reviewer` que revise su diff. Anota el resultado y cada hallazgo diferido en el ledger antes de seguir.
+ 
+ ### 4. Cierre
+diff --git a/skills/ship-change/references/brief.md b/skills/ship-change/references/brief.md
+index 1e3abe9..a11850e 100644
+--- a/skills/ship-change/references/brief.md
++++ b/skills/ship-change/references/brief.md
+@@ -25,6 +25,15 @@ dato, o es una pregunta para el usuario antes de empezar.
+ El comportamiento observable que debe quedar. En una frase por caso límite,
+ no en prosa.
+ 
++**Delegación (si aplica; si no, escribe `sin delegación`):**
++- Una ficha por agente/entrega; repite estos campos para cada asignación.
++- **Agente responsable:** rol o agente que recibe cada entrega.
++- **Objetivo:** resultado concreto que entrega cada agente.
++- **Contexto y restricciones:** datos necesarios y límites de la tarea.
++- **Rutas de escritura exclusivas:** rutas asignadas a cada agente; no se solapan. Las rutas compartidas sólo se leen.
++- **Dependencias y contrato:** orden, interfaz o resultado que consume de otra tarea/agente.
++- **Entregable:** estado `done|blocked|partial`; resumen de máximo 10 líneas con rutas cambiadas y comandos/resultados. El detalle largo va al `task-N-report.md`.
++
+ **Steps:**
+ - [ ] 1. Escribir los tests que fallan
+ - [ ] 2. Implementar el helper
+@@ -81,6 +90,8 @@ no lo menciones.
+ - [ ] ¿La tarea deja el repo en verde al terminar? Si no, es la mitad de otra.
+ - [ ] ¿Está escrito lo que NO autoriza? Y quien lo lea, ¿sabe qué no hacer sin
+       tener que preguntar?
++- [ ] Si se delega en paralelo, ¿cada escritor tiene rutas exclusivas sin solapes,
++      y el entregable pide estado, resumen corto y evidencia?
+ 
+ ## Cuando el implementador encuentra un fallo en el brief
+ 
+diff --git a/tests/test-sdd-contract.sh b/tests/test-sdd-contract.sh
+index 04fe579..74b9ab5 100644
+--- a/tests/test-sdd-contract.sh
++++ b/tests/test-sdd-contract.sh
+@@ -59,6 +59,29 @@ grep -Fq 'nunca `git add -A`' "$REPO_DIR/skills/ship-change/references/brief.md"
+ grep -Fq 'rutas de `Files`' "$REPO_DIR/skills/ship-change/references/brief.md" \
+   || fail 'task brief does not limit staging to its Files list'
+ 
++for handoff_field in \
++  '**Delegación (si aplica; si no, escribe `sin delegación`):**' \
++  '**Agente responsable:**' \
++  '**Objetivo:**' \
++  '**Contexto y restricciones:**' \
++  '**Rutas de escritura exclusivas:**' \
++  '**Dependencias y contrato:**' \
++  '**Entregable:**'; do
++  grep -Fq "$handoff_field" "$REPO_DIR/skills/ship-change/references/brief.md" \
++    || fail "task brief is missing delegation handoff field: $handoff_field"
++done
++grep -Fq 'no se solapan' "$REPO_DIR/skills/ship-change/references/brief.md" \
++  || fail 'task brief does not require disjoint parallel write paths'
++grep -Fq 'Una ficha por agente/entrega' "$REPO_DIR/skills/ship-change/references/brief.md" \
++  || fail 'task brief does not distinguish each delegated assignment'
++grep -Fq 'resumen de máximo 10 líneas' "$REPO_DIR/skills/ship-change/references/brief.md" \
++  || fail 'task brief does not require a concise agent handoff'
++grep -Fq 'done|blocked|partial' "$REPO_DIR/skills/ship-change/references/brief.md" \
++  || fail 'task brief does not require a completion status'
++
++grep -Fq 'No asignes rutas de escritura solapadas' "$REPO_DIR/skills/ship-change/SKILL.md" \
++  || fail 'ship-change does not prevent parallel writers from owning overlapping paths'
++
+ grep -Fq 'ship-change' "$REPO_DIR/agents/developer.md" \
+   || fail 'developer does not route large changes to ship-change'
+ grep -Fq 'developer' "$REPO_DIR/commands/ship.md" \
